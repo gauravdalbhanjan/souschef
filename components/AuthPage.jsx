@@ -9,7 +9,8 @@ import { Logo } from './SplashScreen'
 import { supabase, supabaseConfigured } from '../supabaseClient'
 
 // Real email + password authentication via Supabase Auth.
-export default function AuthPage() {
+// onGuest: start a no-account session (nothing is stored; see api.js guest mode).
+export default function AuthPage({ onGuest }) {
   const [mode, setMode]       = useState('signin') // signin | signup
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
@@ -20,24 +21,7 @@ export default function AuthPage() {
 
   const isSignup = mode === 'signup'
 
-  // Guest = Supabase anonymous sign-in. The guest gets a real (private) pantry
-  // and cart, saved on this device; RLS works the same as for email users.
-  const continueAsGuest = async () => {
-    setError(''); setNotice(''); setBusy(true)
-    try {
-      const { error: err } = await supabase.auth.signInAnonymously()
-      if (err) {
-        if (/anonymous/i.test(err.message)) {
-          throw new Error('Guest mode is turned off. In Supabase, enable Authentication → Sign In / Providers → "Allow anonymous sign-ins".')
-        }
-        throw err
-      }
-    } catch (err) {
-      setError(err.message || 'Could not start a guest session.')
-    } finally {
-      setBusy(false)
-    }
-  }
+
 
   const submit = async (e) => {
     e.preventDefault()
@@ -142,7 +126,7 @@ export default function AuthPage() {
           <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
         </Box>
 
-        <Button type="button" fullWidth onClick={continueAsGuest} disabled={busy || !supabaseConfigured}
+        <Button type="button" fullWidth onClick={onGuest} disabled={busy}
           sx={{
             ...glass('neutral', { radius: 30, blur: 14, a: 0.07 }), color: '#fff', textTransform: 'none',
             fontWeight: 700, fontSize: `${T.title + 1}px`, py: `${PAD * 1.25}px`,
@@ -151,6 +135,9 @@ export default function AuthPage() {
           }}>
           Use as a guest
         </Button>
+        <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px`, textAlign: 'center', mt: `-${PAD}px` }}>
+          No account needed. Nothing is saved after you leave.
+        </Typography>
 
         <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center' }}>
           {isSignup ? 'Already have an account? ' : 'New to SousChef? '}

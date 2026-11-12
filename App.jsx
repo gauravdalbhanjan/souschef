@@ -3,7 +3,7 @@ import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/materi
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { theme, C, glass, T, PAD } from './theme'
-import { api } from './api'
+import { api, setGuestMode } from './api'
 import { supabase } from './supabaseClient'
 import { useSession } from './useSession'
 
@@ -55,7 +55,7 @@ function FullSpinner() {
 }
 
 // ── Dashboard: 3 fixed top tiles + static match-ranked 3-per-row grid ───────
-function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, onOpenRecipe, onAddGroceries, onSignOut }) {
+function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, isGuest, onOpenRecipe, onAddGroceries, onSignOut }) {
   const utilH = 132
   const pantryEmpty = pantryCount === 0
 
@@ -70,13 +70,13 @@ function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, on
       <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: `${PAD}px` }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {userEmail ? `Signed in as ${userEmail}` : 'Browsing as a guest'}
+            {isGuest ? 'Guest session · nothing is saved' : (userEmail ? `Signed in as ${userEmail}` : 'Signed in')}
           </Typography>
           <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
             What are we cooking?
           </Typography>
         </Box>
-        <IconButton onClick={onSignOut} aria-label="Sign out" title="Sign out"
+        <IconButton onClick={onSignOut} aria-label={isGuest ? 'Exit guest session' : 'Sign out'} title={isGuest ? 'Exit guest session' : 'Sign out'}
           sx={{ ...glass('neutral', { radius: 40, blur: 12, a: 0.08 }), color: 'rgba(255,255,255,0.8)', width: 38, height: 38, flexShrink: 0 }}>
           <LogoutIcon sx={{ fontSize: 18 }} />
         </IconButton>
@@ -196,6 +196,7 @@ function InnerApp() {
   const [, bumpOnboarding] = useReducer(x => x + 1, 0)
 
   const session = useSession()          // undefined = checking, null = signed out
+  const [guest, setGuest] = useState(false) // in-memory session, nothing stored
   const uid = session?.user?.id
   const onboardKey = uid ? `souschef_onboarded_${uid}` : null
 
@@ -227,17 +228,31 @@ function InnerApp() {
     }
   }, [onboardKey])
 
-  // (Re)load whenever the signed-in user changes; clear everything on sign-out.
+  // (Re)load whenever the signed-in user / guest session changes; clear on exit.
+  const active = Boolean(uid) || guest
   useEffect(() => {
-    if (uid) {
+    if (active) {
       refreshSuggestions()
     } else {
       setSuggestions([]); setPantryCount(0); setLoadError(''); setLoading(true)
       setPage(p => (p === 'splash' ? p : 'home')); setNavIndex(0)
     }
-  }, [uid, refreshSuggestions])
+  }, [active, uid, refreshSuggestions])
 
-  const signOut = () => supabase.auth.signOut()
+  const startGuest = () => {
+    setGuestMode(true)          // route all data calls to a fresh in-memory store
+    setPage('home'); setNavIndex(0)
+    setGuest(true)
+  }
+
+  const signOut = () => {
+    if (guest) {
+      setGuestMode(false)       // discards everything the guest added
+      setGuest(false)
+      return
+    }
+    supabase.auth.signOut()
+  }
   const goHome = useCallback(() => setPage('home'), [])
 
   const handleNav = (i) => {
@@ -266,8 +281,8 @@ function InnerApp() {
   }
 
   if (page === 'splash') return <SplashScreen onDone={goHome} />
-  if (session === undefined) return <FullSpinner />
-  if (!session) return <AuthPage />
+  if (!guest && session === undefined) return <FullSpinner />
+  if (!guest && !session) return <AuthPage onGuest={startGuest} />
   if (needsOnboarding && loading) return <FullSpinner />
   // If the database isn't reachable/ready, skip onboarding so the dashboard can
   // show the setup message instead of a form that can't save.
@@ -322,7 +337,8 @@ function InnerApp() {
             loading={loading}
             pantryCount={pantryCount}
             loadError={loadError}
-            userEmail={session.user.is_anonymous ? '' : (session.user.email || '')}
+            userEmail={guest ? '' : (session?.user?.email || '')}
+            isGuest={guest}
             onOpenRecipe={openRecipe}
             onAddGroceries={() => setAddOpen(true)}
             onSignOut={signOut}

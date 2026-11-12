@@ -1,0 +1,287 @@
+[
+  {
+    "slug": "caesar-salad",
+    "name": "Caesar Salad",
+    "image": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&q=80",
+    "time_mins": 10,
+    "kcal": 350,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "A classic: crisp romaine, parmesan, croutons and a creamy dressing.",
+    "ingredients": [
+      { "display": "Romaine Lettuce", "quantity": 1, "unit": "head" },
+      { "display": "Parmesan", "quantity": 40, "unit": "g" },
+      { "display": "Croutons", "quantity": 1, "unit": "cup" },
+      { "display": "Mayonnaise", "quantity": 2, "unit": "tbsp" },
+      { "display": "Dijon Mustard", "quantity": 1, "unit": "tsp" },
+      { "display": "Worcestershire", "quantity": 1, "unit": "tsp" },
+      { "display": "Garlic", "quantity": 1, "unit": "clove" },
+      { "display": "Lemon", "quantity": 0.5, "unit": "unit" },
+      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "aglio-olio-spaghetti",
+    "name": "Aglio e Olio Spaghetti",
+    "image": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=600&q=80",
+    "time_mins": 12,
+    "kcal": 550,
+    "servings": 2,
+    "source": "json-cookbook",
+    "description": "Garlic, olive oil, chili and pasta. Five ingredients, big flavor.",
+    "ingredients": [
+      { "display": "Spaghetti", "quantity": 200, "unit": "g" },
+      { "display": "Garlic", "quantity": 4, "unit": "clove" },
+      { "display": "Olive Oil", "quantity": 3, "unit": "tbsp", "staple": true },
+      { "display": "Chili", "quantity": 1, "unit": "unit" },
+      { "display": "Parmesan", "quantity": 30, "unit": "g" },
+      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "caesar-wrap",
+    "name": "Caesar Wrap",
+    "image": "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&q=80",
+    "time_mins": 10,
+    "kcal": 380,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "Caesar salad rolled into a soft tortilla with grilled chicken.",
+    "ingredients": [
+      { "display": "Tortillas", "quantity": 2, "unit": "unit" },
+      { "display": "Chicken Breast", "quantity": 200, "unit": "g" },
+      { "display": "Romaine Lettuce", "quantity": 0.5, "unit": "head" },
+      { "display": "Parmesan", "quantity": 20, "unit": "g" },
+      { "display": "Mayonnaise", "quantity": 2, "unit": "tbsp" },
+      { "display": "Garlic", "quantity": 1, "unit": "clove" }
+    ]
+  },
+  {
+    "slug": "bacon-ham-sandwich",
+    "name": "Bacon Ham Sandwich",
+    "image": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&q=80",
+    "time_mins": 7,
+    "kcal": 600,
+    "servings": 1,
+    "source": "json-cookbook",
+    "description": "Toasted bread, crispy bacon, cheese and a fried egg.",
+    "ingredients": [
+      { "display": "Bread", "quantity": 2, "unit": "slice" },
+      { "display": "Bacon", "quantity": 3, "unit": "slice" },
+      { "display": "Cheese", "quantity": 30, "unit": "g" },
+      { "display": "Egg", "quantity": 1, "unit": "unit" },
+      { "display": "Butter", "quantity": 1, "unit": "tbsp" }
+    ]
+  },
+  {
+    "slug": "guacamole",
+    "name": "Guacamole",
+    "image": "https://images.unsplash.com/photo-1600335895229-6e75511892c8?w=600&q=80",
+    "time_mins": 7,
+    "kcal": 300,
+    "servings": 3,
+    "source": "recipe-dataset",
+    "description": "Ripe avocado mashed with lime, onion, cilantro and chili.",
+    "ingredients": [
+      { "display": "Avocado", "quantity": 2, "unit": "unit" },
+      { "display": "Lime", "quantity": 1, "unit": "unit" },
+      { "display": "Onion", "quantity": 0.5, "unit": "unit" },
+      { "display": "Cilantro", "quantity": 1, "unit": "bunch" },
+      { "display": "Chili", "quantity": 1, "unit": "unit" },
+      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "chicken-nuggets",
+    "name": "Chicken Nuggets",
+    "image": "https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=80",
+    "time_mins": 20,
+    "kcal": 420,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "Crispy breaded chicken bites, oven-baked or air-fried.",
+    "ingredients": [
+      { "display": "Chicken Breast", "quantity": 300, "unit": "g" },
+      { "display": "Flour", "quantity": 100, "unit": "g", "staple": true },
+      { "display": "Egg", "quantity": 1, "unit": "unit" },
+      { "display": "Bread", "quantity": 2, "unit": "slice" },
+      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true },
+      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "chicken-strips",
+    "name": "Chicken Strips",
+    "image": "https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=600&q=80",
+    "time_mins": 15,
+    "kcal": 500,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "Golden chicken tenders with a seasoned crumb.",
+    "ingredients": [
+      { "display": "Chicken Breast", "quantity": 350, "unit": "g" },
+      { "display": "Flour", "quantity": 80, "unit": "g", "staple": true },
+      { "display": "Egg", "quantity": 1, "unit": "unit" },
+      { "display": "Paprika", "quantity": 1, "unit": "tsp", "staple": true },
+      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "chicken-fries",
+    "name": "Chicken Fries",
+    "image": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80",
+    "time_mins": 18,
+    "kcal": 450,
+    "servings": 2,
+    "source": "json-cookbook",
+    "description": "Chicken fries with a side of crispy potato fries.",
+    "ingredients": [
+      { "display": "Chicken Breast", "quantity": 250, "unit": "g" },
+      { "display": "Potato", "quantity": 3, "unit": "unit" },
+      { "display": "Flour", "quantity": 60, "unit": "g", "staple": true },
+      { "display": "Oil", "quantity": 3, "unit": "tbsp", "staple": true },
+      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "bundt-cake",
+    "name": "Bundt Cake",
+    "image": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&q=80",
+    "time_mins": 60,
+    "kcal": 350,
+    "servings": 8,
+    "source": "json-cookbook",
+    "description": "A tender ring cake with a golden buttery crumb.",
+    "ingredients": [
+      { "display": "Flour", "quantity": 300, "unit": "g", "staple": true },
+      { "display": "Sugar", "quantity": 250, "unit": "g", "staple": true },
+      { "display": "Butter", "quantity": 200, "unit": "g" },
+      { "display": "Egg", "quantity": 4, "unit": "unit" },
+      { "display": "Milk", "quantity": 200, "unit": "ml" },
+      { "display": "Lemon", "quantity": 1, "unit": "unit" }
+    ]
+  },
+  {
+    "slug": "tomato-spinach-pasta",
+    "name": "Tomato Spinach Pasta",
+    "image": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80",
+    "time_mins": 18,
+    "kcal": 480,
+    "servings": 2,
+    "source": "tandoor",
+    "description": "Penne tossed with garlicky tomato sauce and wilted spinach.",
+    "ingredients": [
+      { "display": "Penne Pasta", "quantity": 200, "unit": "g" },
+      { "display": "Tomato", "quantity": 3, "unit": "unit" },
+      { "display": "Spinach", "quantity": 100, "unit": "g" },
+      { "display": "Garlic", "quantity": 2, "unit": "clove" },
+      { "display": "Olive Oil", "quantity": 2, "unit": "tbsp", "staple": true },
+      { "display": "Parmesan", "quantity": 30, "unit": "g" }
+    ]
+  },
+  {
+    "slug": "veggie-omelette",
+    "name": "Veggie Omelette",
+    "image": "https://images.unsplash.com/photo-1510693206972-df098062cb71?w=600&q=80",
+    "time_mins": 8,
+    "kcal": 260,
+    "servings": 1,
+    "source": "tandoor",
+    "description": "Fluffy eggs folded over sauteed peppers, onion and cheese.",
+    "ingredients": [
+      { "display": "Egg", "quantity": 3, "unit": "unit" },
+      { "display": "Bell Pepper", "quantity": 0.5, "unit": "unit" },
+      { "display": "Onion", "quantity": 0.25, "unit": "unit" },
+      { "display": "Cheese", "quantity": 30, "unit": "g" },
+      { "display": "Butter", "quantity": 1, "unit": "tbsp" },
+      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "garlic-butter-salmon",
+    "name": "Garlic Butter Salmon",
+    "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600&q=80",
+    "time_mins": 20,
+    "kcal": 410,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "Pan-seared salmon in a lemony garlic butter.",
+    "ingredients": [
+      { "display": "Salmon", "quantity": 2, "unit": "unit" },
+      { "display": "Butter", "quantity": 2, "unit": "tbsp" },
+      { "display": "Garlic", "quantity": 3, "unit": "clove" },
+      { "display": "Lemon", "quantity": 1, "unit": "unit" },
+      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "chickpea-curry",
+    "name": "Chickpea Curry",
+    "image": "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&q=80",
+    "time_mins": 25,
+    "kcal": 390,
+    "servings": 3,
+    "source": "tandoor",
+    "description": "Chickpeas simmered in a spiced tomato and onion gravy.",
+    "ingredients": [
+      { "display": "Chickpeas", "quantity": 2, "unit": "can" },
+      { "display": "Tomato", "quantity": 2, "unit": "unit" },
+      { "display": "Onion", "quantity": 1, "unit": "unit" },
+      { "display": "Garlic", "quantity": 2, "unit": "clove" },
+      { "display": "Ginger", "quantity": 1, "unit": "tbsp" },
+      { "display": "Cumin", "quantity": 1, "unit": "tsp", "staple": true },
+      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "banana-pancakes",
+    "name": "Banana Pancakes",
+    "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
+    "time_mins": 15,
+    "kcal": 330,
+    "servings": 2,
+    "source": "json-cookbook",
+    "description": "Soft pancakes sweetened with ripe mashed banana.",
+    "ingredients": [
+      { "display": "Banana", "quantity": 2, "unit": "unit" },
+      { "display": "Flour", "quantity": 150, "unit": "g", "staple": true },
+      { "display": "Egg", "quantity": 2, "unit": "unit" },
+      { "display": "Milk", "quantity": 150, "unit": "ml" },
+      { "display": "Butter", "quantity": 1, "unit": "tbsp" }
+    ]
+  },
+  {
+    "slug": "shrimp-fried-rice",
+    "name": "Shrimp Fried Rice",
+    "image": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&q=80",
+    "time_mins": 18,
+    "kcal": 520,
+    "servings": 2,
+    "source": "recipe-dataset",
+    "description": "Wok-tossed rice with shrimp, egg and vegetables.",
+    "ingredients": [
+      { "display": "Rice", "quantity": 300, "unit": "g" },
+      { "display": "Shrimp", "quantity": 200, "unit": "g" },
+      { "display": "Egg", "quantity": 2, "unit": "unit" },
+      { "display": "Carrot", "quantity": 1, "unit": "unit" },
+      { "display": "Onion", "quantity": 0.5, "unit": "unit" },
+      { "display": "Soy Sauce", "quantity": 2, "unit": "tbsp", "staple": true },
+      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
+    ]
+  },
+  {
+    "slug": "greek-yogurt-berry-bowl",
+    "name": "Greek Yogurt Berry Bowl",
+    "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+    "time_mins": 5,
+    "kcal": 220,
+    "servings": 1,
+    "source": "json-cookbook",
+    "description": "Creamy yogurt topped with berries and a drizzle of honey.",
+    "ingredients": [
+      { "display": "Greek Yogurt", "quantity": 200, "unit": "g" },
+      { "display": "Berries", "quantity": 100, "unit": "g" },
+      { "display": "Honey", "quantity": 1, "unit": "tbsp", "staple": true }
+    ]
+  }
+]

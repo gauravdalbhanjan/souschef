@@ -10,6 +10,7 @@ import { toBase, canonicalOf, categoryOf, shelfLifeDays } from './lib/normalize.
 import { parseReceiptText } from './lib/receiptParser.js'
 import { parseEmailReceipt } from './lib/emailParser.js'
 import { ocrImage } from './lib/ocr.js'
+import { localCatalog } from './lib/localCatalog.js'
 
 function must({ data, error }) {
   if (error) throw new Error(error.message)
@@ -179,7 +180,8 @@ function shapeSuggestion(r) {
   }
 }
 
-export const api = {
+// Signed-in users: everything persists in Supabase.
+const cloudApi = {
   // ── suggestions & recipes ─────────────────────────────────────────────────
   async suggestions() {
     const [{ recipes, byRecipe }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
@@ -296,3 +298,161 @@ export const api = {
   async clearCart() { must(await supabase.from('cart').delete().neq('id', -1)) },
   async checkout() { return buildHandoff(await listCart()) },
 }
+
+// ── Guest sessions: no account, nothing stored ──────────────────────────────
+// Pantry, cart and cooking state live only in memory for this tab. Nothing is
+// sent to Supabase; a refresh or "Exit guest" wipes it. Suggestions are computed
+// on the device from the bundled recipe catalog.
+let guestMode = false
+let mem = null
+let nextId = 1
+
+function freshMemory() {
+  return { pantry: [], cart: [], sessions: new Map() }
+}
+
+export function setGuestMode(on) {
+  guestMode = on
+  mem = on ? freshMemory() : null
+}
+export const isGuestMode = () => guestMode
+
+function memMergePantry(items) {
+  let n = 0
+  for (const it of items) {
+    const canonical = it.canonical || canonicalOf(it.display)
+    if (!canonical) continue
+    const row = {
+      canonical,
+      display: it.display || canonical,
+      category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
+      quantity: Number(it.quantity) || 1,
+      unit: it.unit || 'unit',
+      brand: it.brand || null,
+      purchased: it.purchased || today(),
+      image: it.image || null,
+    }
+    const hit = mem.pantry.find(p => sameKey(p, row))
+    if (hit) hit.quantity = Number(hit.quantity) + row.quantity
+    else mem.pantry.push({ id: nextId++, ...row })
+    n++
+  }
+  return n
+}
+
+function memAddCart(items) {
+  let n = 0
+  for (const it of items) {
+    const canonical = it.canonical || canonicalOf(it.display)
+    if (!canonical) continue
+    const unit = it.unit || 'unit'
+    const qty = Number(it.quantity) || 1
+    const hit = mem.cart.find(c => c.canonical === canonical && c.unit === unit)
+    if (hit) hit.quantity = Number(hit.quantity) + qty
+    else {
+      mem.cart.unshift({
+        id: nextId++, canonical, display: it.display || canonical, quantity: qty, unit,
+        category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
+        source: it.source || null,
+      })
+    }
+    n++
+  }
+  return n
+}
+
+const sortedPantry = () =>
+  [...mem.pantry].sort((a, b) => a.category.localeCompare(b.category) || a.display.localeCompare(b.display))
+
+const guestApi = {
+  async suggestions() {
+    const { recipes, byRecipe } = localCatalog()
+    return rankRecipes(recipes, byRecipe, mem.pantry).map(shapeSuggestion)
+  },
+
+  async recipe(slug) {
+    const { recipes, byRecipe } = localCatalog()
+    const recipe = recipes.find(r => r.slug === slug)
+    if (!recipe) throw new Error('Recipe not found')
+    const scored = rankRecipes([recipe], byRecipe, mem.pantry)[0]
+    const ingredients = (byRecipe.get(recipe.id) || []).map(ing => {
+      const missing = scored.missing.find(m => m.canonical === ing.canonical)
+      return {
+        canonical: ing.canonical, display: ing.display, quantity: ing.quantity, unit: ing.unit,
+        staple: !!ing.staple, have: ing.staple ? true : !missing,
+      }
+    })
+    return { ...shapeSuggestion(scored), steps: recipe.steps || [], ingredients }
+  },
+
+  async pantry() { return decoratePantry(sortedPantry(), localCatalog().byRecipe) },
+  async addPantry(item) { return memMergePantry([item]) },
+  async updatePantry(id, quantity) {
+    const row = mem.pantry.find(p => p.id === id)
+    if (row) row.quantity = Number(quantity)
+  },
+  async deletePantry(id) { mem.pantry = mem.pantry.filter(p => p.id !== id) },
+  async commit(items) { return { committed: memMergePantry(items) } },
+
+  async scanReceipt(file, onProgress) {
+    const text = await ocrImage(file, onProgress)
+    const { date, items } = parseReceiptText(text)
+    return { receiptId: null, source: 'photo', date, rawText: text, items }
+  },
+  async parseReceiptText(text) {
+    const { date, items } = parseReceiptText(text)
+    return { receiptId: null, source: 'text', date, items }
+  },
+  async parseEmail(text) {
+    const { vendor, date, items } = parseEmailReceipt(text)
+    return { receiptId: null, source: `email:${vendor}`, vendor, date, items }
+  },
+
+  async startCook(slug, servings) {
+    const recipe = localCatalog().recipes.find(r => r.slug === slug)
+    if (!recipe) throw new Error('Recipe not found')
+    const s = Number(servings) || recipe.servings || 1
+    const sessionId = nextId++
+    mem.sessions.set(sessionId, { recipeId: recipe.id, servings: s, status: 'in_progress' })
+    return { sessionId, recipeId: recipe.id, servings: s }
+  },
+
+  async completeCook(sessionId) {
+    const session = mem.sessions.get(sessionId)
+    if (!session) throw new Error('Cooking session not found')
+    if (session.status === 'completed') return { alreadyCompleted: true }
+    const { recipes, byRecipe } = localCatalog()
+    const recipe = recipes.find(r => r.id === session.recipeId)
+    const scale = session.servings / (recipe.servings || 1)
+    const depletion = []
+    for (const ing of byRecipe.get(recipe.id) || []) {
+      const need = toBase(ing.quantity * scale, ing.unit)
+      if (need.amount <= 0) continue
+      let remaining = need.amount
+      const rows = mem.pantry.filter(p => p.canonical === ing.canonical).sort((a, b) => b.quantity - a.quantity)
+      for (const row of rows) {
+        if (remaining <= 0) break
+        const stock = toBase(row.quantity, row.unit)
+        if (stock.base !== need.base) continue
+        const take = Math.min(stock.amount, remaining)
+        const perUnit = toBase(1, row.unit).amount || 1
+        row.quantity = Math.max(0, +((stock.amount - take) / perUnit).toFixed(3))
+        depletion.push({ pantryId: row.id, canonical: ing.canonical, took: +(take / perUnit).toFixed(3), unit: row.unit })
+        remaining -= take
+      }
+    }
+    session.status = 'completed'
+    return { completed: true, depletion }
+  },
+
+  async cart() { return [...mem.cart] },
+  async addToCart(items) { const added = memAddCart(items); return { added, items: [...mem.cart] } },
+  async removeFromCart(id) { mem.cart = mem.cart.filter(c => c.id !== id) },
+  async clearCart() { mem.cart = [] },
+  async checkout() { return buildHandoff(mem.cart) },
+}
+
+// Screens import `api` and never need to know which mode is active.
+export const api = new Proxy({}, {
+  get: (_, key) => (guestMode ? guestApi : cloudApi)[key],
+})

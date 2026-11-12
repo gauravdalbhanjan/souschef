@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useReducer } from 'react'
 import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/material'
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { theme, C, glass, T, PAD } from './theme'
 import { api } from './api'
+import { supabase } from './supabaseClient'
+import { useSession } from './useSession'
 
 import TimerCard      from './components/TimerCard'
 import TodoCard       from './components/TodoCard'
@@ -14,7 +17,7 @@ import InventoryPage  from './components/InventoryPage'
 import RoutinePage    from './components/RoutinePage'
 import EventsPage     from './components/EventsPage'
 import SplashScreen   from './components/SplashScreen'
-import LoginPage      from './components/LoginPage'
+import AuthPage       from './components/AuthPage'
 import AddGroceries   from './components/AddGroceries'
 import FoodTile       from './components/FoodTile'
 import CartPage       from './components/CartPage'
@@ -43,8 +46,16 @@ function CuratingOverlay({ show }) {
   )
 }
 
+function FullSpinner() {
+  return (
+    <Box sx={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <CircularProgress size={30} sx={{ color: C.amber }} aria-label="Loading" />
+    </Box>
+  )
+}
+
 // ── Dashboard: 3 fixed top tiles + static match-ranked 3-per-row grid ───────
-function Dashboard({ suggestions, loading, pantryCount, onOpenRecipe, onAddGroceries }) {
+function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, onOpenRecipe, onAddGroceries, onSignOut }) {
   const utilH = 132
   const pantryEmpty = pantryCount === 0
 
@@ -56,14 +67,29 @@ function Dashboard({ suggestions, loading, pantryCount, onOpenRecipe, onAddGroce
       pt: `${PAD}px`,
     }}>
       {/* Greeting header */}
-      <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0 }}>
-        <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500 }}>
-          Good evening, Chef
-        </Typography>
-        <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
-          What are we cooking?
-        </Typography>
+      <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: `${PAD}px` }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {userEmail ? `Signed in as ${userEmail}` : 'Good evening, Chef'}
+          </Typography>
+          <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
+            What are we cooking?
+          </Typography>
+        </Box>
+        <IconButton onClick={onSignOut} aria-label="Sign out" title="Sign out"
+          sx={{ ...glass('neutral', { radius: 40, blur: 12, a: 0.08 }), color: 'rgba(255,255,255,0.8)', width: 38, height: 38, flexShrink: 0 }}>
+          <LogoutIcon sx={{ fontSize: 18 }} />
+        </IconButton>
       </Box>
+
+      {loadError && (
+        <Box role="alert" sx={{ mx: `${PAD}px`, mb: `${PAD}px`, p: `${PAD * 1.5}px`, ...glass('neutral', { radius: 14, blur: 14, a: 0.06 }), border: '1px solid rgba(255,138,138,0.5)' }}>
+          <Typography sx={{ color: '#ff8a8a', fontSize: `${T.sub}px`, fontWeight: 700, mb: '2px' }}>Database isn't ready</Typography>
+          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: `${T.sub}px`, lineHeight: 1.5 }}>
+            {loadError}
+          </Typography>
+        </Box>
+      )}
 
       {/* Top row: 3 fixed tiles — Timer | ToDo | DailyTips (all visible, no scroll) */}
       <Box sx={{ display: 'flex', gap: `${GAP}px`, px: `${PAD}px`, py: `${PAD / 2}px`, flexShrink: 0 }}>
@@ -166,32 +192,53 @@ function InnerApp() {
   const [prevPage, setPrevPage] = useState('home')
   const [curating, setCurating] = useState(false)
   const [pantryCount, setPantryCount] = useState(0)
+  const [loadError, setLoadError] = useState('')
+  const [, bumpOnboarding] = useReducer(x => x + 1, 0)
 
-  // First-run: show onboarding once (persisted in localStorage).
-  const [needsOnboarding, setNeedsOnboarding] = useState(
-    () => { try { return !localStorage.getItem('souschef_onboarded') } catch { return true } }
-  )
+  const session = useSession()          // undefined = checking, null = signed out
+  const uid = session?.user?.id
+  const onboardKey = uid ? `souschef_onboarded_${uid}` : null
+
+  // First-run onboarding, once per user (stored per account on this device).
+  let needsOnboarding = false
+  if (onboardKey) {
+    try { needsOnboarding = !localStorage.getItem(onboardKey) } catch { needsOnboarding = true }
+  }
 
   const refreshSuggestions = useCallback(async () => {
     try {
       setLoading(true)
-      // Fetch suggestions + pantry together so the dashboard's empty states
-      // (0% ready-to-cook, blank todos, prompt tip) track the real pantry size.
-      const [s, items] = await Promise.all([
-        api.suggestions(),
-        api.pantry().catch(() => []),
-      ])
+      setLoadError('')
+      // Suggestions + pantry together so the dashboard's empty states track the
+      // real pantry size.
+      const [s, items] = await Promise.all([api.suggestions(), api.pantry()])
       setSuggestions(s)
-      setPantryCount(Array.isArray(items) ? items.length : 0)
+      setPantryCount(items.length)
+      // An existing user on a new device already has a pantry: skip onboarding.
+      if (items.length > 0 && onboardKey) {
+        try { localStorage.setItem(onboardKey, '1') } catch { /* ignore */ }
+      }
     } catch (e) {
-      console.warn('suggestions unavailable (no backend?):', e.message)
-      setSuggestions([]) // graceful empty state on Vercel Option A
+      console.warn('load failed:', e.message)
+      setSuggestions([])
+      setLoadError(e.message)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [onboardKey])
 
-  useEffect(() => { refreshSuggestions() }, [refreshSuggestions])
+  // (Re)load whenever the signed-in user changes; clear everything on sign-out.
+  useEffect(() => {
+    if (uid) {
+      refreshSuggestions()
+    } else {
+      setSuggestions([]); setPantryCount(0); setLoadError(''); setLoading(true)
+      setPage(p => (p === 'splash' ? p : 'home')); setNavIndex(0)
+    }
+  }, [uid, refreshSuggestions])
+
+  const signOut = () => supabase.auth.signOut()
+  const goHome = useCallback(() => setPage('home'), [])
 
   const handleNav = (i) => {
     setNavIndex(i)
@@ -212,15 +259,19 @@ function InnerApp() {
   }
 
   const finishOnboarding = () => {
-    try { localStorage.setItem('souschef_onboarded', '1') } catch { /* ignore */ }
-    setNeedsOnboarding(false)
+    try { localStorage.setItem(onboardKey, '1') } catch { /* ignore */ }
+    bumpOnboarding()
     setCurating(true)
     refreshSuggestions().finally(() => setCurating(false))
   }
 
-  if (page === 'splash') return <SplashScreen onDone={() => setPage('login')} />
-  if (page === 'login')  return <LoginPage onLogin={() => setPage('home')} />
-  if (needsOnboarding)   return <Onboarding onDone={finishOnboarding} />
+  if (page === 'splash') return <SplashScreen onDone={goHome} />
+  if (session === undefined) return <FullSpinner />
+  if (!session) return <AuthPage />
+  if (needsOnboarding && loading) return <FullSpinner />
+  // If the database isn't reachable/ready, skip onboarding so the dashboard can
+  // show the setup message instead of a form that can't save.
+  if (needsOnboarding && !loadError) return <Onboarding onDone={finishOnboarding} />
 
   if (page === 'recipe') {
     return (
@@ -270,8 +321,11 @@ function InnerApp() {
             suggestions={suggestions}
             loading={loading}
             pantryCount={pantryCount}
+            loadError={loadError}
+            userEmail={session.user.email}
             onOpenRecipe={openRecipe}
             onAddGroceries={() => setAddOpen(true)}
+            onSignOut={signOut}
           />
         )}
         {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} />}

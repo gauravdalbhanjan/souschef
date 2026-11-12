@@ -107,6 +107,15 @@ async function commitPantry(items) {
   return batch.length
 }
 
+// Keep a copy of each parsed receipt. Best-effort: a logging failure must never
+// block the user from reviewing what was scanned.
+async function logReceipt(source, rawText, items) {
+  const { data, error } = await supabase
+    .from('receipts').insert({ source, raw_text: rawText, items }).select('id').single()
+  if (error) { console.warn('receipt log skipped:', error.message); return null }
+  return data.id
+}
+
 // ── Cart helpers ────────────────────────────────────────────────────────────
 async function listCart() {
   return must(await supabase.from('cart').select('*').order('created_at', { ascending: false }))
@@ -211,21 +220,21 @@ export const api = {
   },
 
   // ── ingestion (parsing runs in the browser) ───────────────────────────────
-  async scanReceipt(file) {
-    const text = await ocrImage(file)
+  async scanReceipt(file, onProgress) {
+    const text = await ocrImage(file, onProgress)
     const { date, items } = parseReceiptText(text)
-    const row = must(await supabase.from('receipts').insert({ source: 'photo', raw_text: text, items }).select('id').single())
-    return { receiptId: row.id, source: 'photo', date, rawText: text, items }
+    const receiptId = await logReceipt('photo', text, items)
+    return { receiptId, source: 'photo', date, rawText: text, items }
   },
   async parseReceiptText(text) {
     const { date, items } = parseReceiptText(text)
-    const row = must(await supabase.from('receipts').insert({ source: 'text', raw_text: text, items }).select('id').single())
-    return { receiptId: row.id, source: 'text', date, items }
+    const receiptId = await logReceipt('text', text, items)
+    return { receiptId, source: 'text', date, items }
   },
   async parseEmail(text) {
     const { vendor, date, items } = parseEmailReceipt(text)
-    const row = must(await supabase.from('receipts').insert({ source: `email:${vendor}`, raw_text: text, items }).select('id').single())
-    return { receiptId: row.id, source: `email:${vendor}`, vendor, date, items }
+    const receiptId = await logReceipt(`email:${vendor}`, text, items)
+    return { receiptId, source: `email:${vendor}`, vendor, date, items }
   },
 
   // ── cooking (with pantry depletion) ───────────────────────────────────────

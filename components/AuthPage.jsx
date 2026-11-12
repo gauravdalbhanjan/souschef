@@ -20,6 +20,25 @@ export default function AuthPage() {
 
   const isSignup = mode === 'signup'
 
+  // Guest = Supabase anonymous sign-in. The guest gets a real (private) pantry
+  // and cart, saved on this device; RLS works the same as for email users.
+  const continueAsGuest = async () => {
+    setError(''); setNotice(''); setBusy(true)
+    try {
+      const { error: err } = await supabase.auth.signInAnonymously()
+      if (err) {
+        if (/anonymous/i.test(err.message)) {
+          throw new Error('Guest mode is turned off. In Supabase, enable Authentication → Sign In / Providers → "Allow anonymous sign-ins".')
+        }
+        throw err
+      }
+    } catch (err) {
+      setError(err.message || 'Could not start a guest session.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const submit = async (e) => {
     e.preventDefault()
     setError(''); setNotice('')
@@ -29,7 +48,14 @@ export default function AuthPage() {
     setBusy(true)
     try {
       if (isSignup) {
-        const { data, error: err } = await supabase.auth.signUp({ email: email.trim(), password })
+        // Send the confirmation link back to THIS app (Vercel URL, LAN IP or
+        // localhost), not Supabase's default Site URL. The URL must also be in
+        // Supabase -> Authentication -> URL Configuration -> Redirect URLs.
+        const { data, error: err } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: window.location.origin },
+        })
         if (err) throw err
         // With email confirmation on, there is no session until the link is clicked.
         if (!data.session) {
@@ -108,6 +134,22 @@ export default function AuthPage() {
             '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
           }}>
           {busy ? 'Please wait…' : (isSignup ? 'Create account' : 'Sign in')}
+        </Button>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px` }}>
+          <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
+          <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: `${T.sub}px` }}>or</Typography>
+          <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
+        </Box>
+
+        <Button type="button" fullWidth onClick={continueAsGuest} disabled={busy || !supabaseConfigured}
+          sx={{
+            ...glass('neutral', { radius: 30, blur: 14, a: 0.07 }), color: '#fff', textTransform: 'none',
+            fontWeight: 700, fontSize: `${T.title + 1}px`, py: `${PAD * 1.25}px`,
+            '&:hover': { background: 'rgba(255,255,255,0.14)' },
+            '&.Mui-disabled': { color: 'rgba(255,255,255,0.4)' },
+          }}>
+          Use as a guest
         </Button>
 
         <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center' }}>

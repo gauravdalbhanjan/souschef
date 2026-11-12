@@ -70,7 +70,7 @@ function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, on
       <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: `${PAD}px` }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {userEmail ? `Signed in as ${userEmail}` : 'Good evening, Chef'}
+            {userEmail ? `Signed in as ${userEmail}` : 'Browsing as a guest'}
           </Typography>
           <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
             What are we cooking?
@@ -322,7 +322,7 @@ function InnerApp() {
             loading={loading}
             pantryCount={pantryCount}
             loadError={loadError}
-            userEmail={session.user.email}
+            userEmail={session.user.is_anonymous ? '' : (session.user.email || '')}
             onOpenRecipe={openRecipe}
             onAddGroceries={() => setAddOpen(true)}
             onSignOut={signOut}

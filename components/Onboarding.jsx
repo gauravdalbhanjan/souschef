@@ -60,7 +60,7 @@ export default function Onboarding({ onDone }) {
             Let's start by adding your current pantry capacity
           </Typography>
           <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, mt: `${PAD}px`, lineHeight: 1.5 }}>
-            Scan a grocery receipt or paste a receipt email and we'll stock your pantry — then suggest dishes you can actually cook. No pantry yet? Continue as a guest and add items anytime.
+            Scan a grocery receipt or paste a receipt email and we'll stock your pantry — then suggest dishes you can actually cook. Not ready? Skip for now and add items anytime.
           </Typography>
         </Box>
 
@@ -82,11 +82,11 @@ export default function Onboarding({ onDone }) {
           )}
         </Box>
 
-        {/* Continue as guest */}
+        {/* Skip pantry setup */}
         <Box sx={{ px: `${PAD * 2}px`, py: `${PAD * 1.5}px`, borderTop: `1px solid ${C.glassBorder}`, textAlign: 'center' }}>
           <Typography onClick={() => onDone(false)}
             sx={{ color: 'rgba(255,255,255,0.65)', fontSize: `${T.body}px`, fontWeight: 600, cursor: 'pointer', py: `${PAD}px`, '&:hover': { color: '#fff' } }}>
-            Continue as guest
+            Skip for now
           </Typography>
         </Box>
       </Box>

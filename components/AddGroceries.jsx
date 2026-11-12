@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box, Typography, Modal, IconButton, Button, TextField,
   CircularProgress, ToggleButtonGroup, ToggleButton, Snackbar,
 } from '@mui/material'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary'
 import EmailIcon from '@mui/icons-material/Email'
 import CloseIcon from '@mui/icons-material/Close'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
@@ -13,6 +14,13 @@ import { C, glass, glassField, T, PAD } from '../theme'
 import { api } from '../api'
 import WheelPicker from './WheelPicker'
 import { QTY_OPTIONS, UNIT_OPTIONS, DEFAULT_UNIT } from '../units'
+
+// Hidden from view but still a real, focusable file input (not display:none),
+// so the surrounding <label> opens the native camera / photo picker on tap.
+const visuallyHidden = {
+  position: 'absolute', width: 1, height: 1, p: 0, m: '-1px',
+  overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0,
+}
 
 export default function AddGroceries({ open, onClose, onCommitted, initialMode = 'camera' }) {
   const [mode, setMode] = useState(initialMode)  // camera | email
@@ -25,7 +33,7 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
   const [receiptId, setReceiptId] = useState(null)
   const [snack, setSnack] = useState('')
   const [manual, setManual] = useState({ display: '', quantity: '1', unit: DEFAULT_UNIT })
-  const fileRef = useRef(null)
+  const [progress, setProgress] = useState('')
 
   // When the sheet (re)opens, start on the requested tab (camera/email).
   useEffect(() => { if (open) setMode(initialMode) }, [open, initialMode])
@@ -43,15 +51,23 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
   }))
 
   const onPickImage = async (e) => {
-    const file = e.target.files?.[0]
+    const input = e.target
+    const file = input.files?.[0]
     if (!file) return
-    setBusy(true); setError('')
+    setBusy(true); setError(''); setProgress('Preparing photo…')
     try {
-      const res = await api.scanReceipt(file)
-      if (!res.items?.length) { setError('No grocery items detected. Try a clearer, straight-on photo.'); return }
+      const res = await api.scanReceipt(file, setProgress)
+      if (!res.items?.length) {
+        setError("We couldn't find grocery items in that photo. Try a flat, well-lit, straight-on shot, or add items by hand.")
+        return
+      }
       setItems(prepForConfirm(res.items)); setReceiptId(res.receiptId); setStep(0); setStage('confirm')
-    } catch (err) { setError(`Scan failed: ${err.message}`) }
-    finally { setBusy(false); if (fileRef.current) fileRef.current.value = '' }
+    } catch (err) {
+      setError(`Scan failed: ${err.message}`)
+    } finally {
+      setBusy(false); setProgress('')
+      input.value = '' // allow picking the same photo again
+    }
   }
 
   const onParseEmail = async () => {
@@ -138,15 +154,30 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
               </Box>
               <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pb: `${PAD * 2}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
                 {mode === 'camera' ? (
-                  <Box sx={{ textAlign: 'center', py: `${PAD * 3}px` }}>
-                    <input ref={fileRef} type="file" accept="image/*" capture="environment" hidden onChange={onPickImage} />
-                    <Button onClick={() => fileRef.current?.click()} disabled={busy}
-                      startIcon={busy ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <CameraAltIcon />}
-                      sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body}px`, px: 3, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(245,166,35,0.48)' } }}>
-                      {busy ? 'Reading receipt…' : 'Open camera / choose photo'}
-                    </Button>
+                  <Box sx={{ textAlign: 'center', py: `${PAD * 2}px` }}>
+                    {busy ? (
+                      <Box role="status" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${PAD * 1.5}px`, py: `${PAD * 2}px` }}>
+                        <CircularProgress size={30} sx={{ color: C.amber }} />
+                        <Typography sx={{ color: '#fff', fontSize: `${T.body}px`, fontWeight: 600 }}>{progress || 'Reading receipt…'}</Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: `${PAD * 1.25}px` }}>
+                        {/* Real <label>-wrapped inputs: a tap opens the picker natively.
+                            (A programmatic .click() on a hidden input is unreliable on iOS.) */}
+                        <Button component="label" fullWidth startIcon={<CameraAltIcon />}
+                          sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(245,166,35,0.48)' } }}>
+                          Take a photo
+                          <Box component="input" type="file" accept="image/*" capture="environment" onChange={onPickImage} sx={visuallyHidden} />
+                        </Button>
+                        <Button component="label" fullWidth startIcon={<PhotoLibraryIcon />}
+                          sx={{ ...glass('neutral', { radius: 30, blur: 14, a: 0.08 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(255,255,255,0.14)' } }}>
+                          Choose a photo
+                          <Box component="input" type="file" accept="image/*" onChange={onPickImage} sx={visuallyHidden} />
+                        </Button>
+                      </Box>
+                    )}
                     <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: `${T.sub}px`, mt: `${PAD * 1.5}px`, lineHeight: 1.5 }}>
-                      Snap a grocery receipt. We match each line to a pantry ingredient — then you set how much you bought.
+                      Snap a grocery receipt. We match each line to a pantry ingredient, then you set how much you bought. The photo is read on your device and never uploaded.
                     </Typography>
                   </Box>
                 ) : (

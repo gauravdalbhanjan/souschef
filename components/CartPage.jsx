@@ -14,6 +14,14 @@ const providerColor = {
   walmart: 'rgba(245,166,35,0.32)',
 }
 
+// Why an item is in the cart: an event plan, a pantry reorder, or a recipe.
+function sourceLabel(source) {
+  if (!source) return ''
+  if (source.startsWith('event:')) return ` · for ${source.slice(6)}`
+  if (source === 'pantry') return ' · reorder'
+  return ` · for ${source.replace(/-/g, ' ')}`
+}
+
 export default function CartPage({ onBack }) {
   const [items, setItems] = useState([])
   const [pantry, setPantry] = useState([])
@@ -84,7 +92,7 @@ export default function CartPage({ onBack }) {
               <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, py: `${PAD * 1.25}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(255,255,255,.07)', '&:last-child': { borderBottom: 'none' } }}>
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{ color: '#fff', fontWeight: 600, fontSize: `${T.title}px` }}>{it.display}</Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px` }}>{it.quantity} {it.unit}{it.source ? ` · for ${it.source.replace(/-/g, ' ')}` : ''}</Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px` }}>{it.quantity} {it.unit}{sourceLabel(it.source)}</Typography>
                 </Box>
                 <IconButton size="small" onClick={() => remove(it.id)} sx={{ color: '#666', '&:hover': { color: '#ff8a8a' } }}>
                   <DeleteIcon sx={{ fontSize: 18 }} />

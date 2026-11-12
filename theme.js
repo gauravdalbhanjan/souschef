@@ -97,7 +97,10 @@ export const glassField = {
 export const theme = createTheme({
   palette: {
     mode: 'dark',
-    background: { default: 'transparent', paper: 'rgba(255,255,255,0.07)' },
+    // Must be a real color: MUI derives colors from it (e.g. Snackbar runs
+    // emphasize() on it) and throws on 'transparent'. Matches the base color
+    // under the fluid gradient in index.css, so nothing changes visually.
+    background: { default: '#0b0e14', paper: 'rgba(255,255,255,0.07)' },
     primary: { main: '#f5a623' },
     secondary: { main: '#4d7cff' },
     text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.62)' },

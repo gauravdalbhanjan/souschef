@@ -4,6 +4,8 @@ import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { theme, C, glass, T, PAD } from './theme'
 import { api, setGuestMode } from './api'
+import { syncEventStock, clearMemoryPlans } from './lib/events.js'
+import { Snackbar } from '@mui/material'
 import { supabase } from './supabaseClient'
 import { useSession } from './useSession'
 
@@ -239,6 +241,27 @@ function InnerApp() {
     }
   }, [active, uid, refreshSuggestions])
 
+  // Event plans: per account on this device; guests keep them in memory only.
+  const planKey = uid && !guest ? `souschef_events_${uid}` : null
+  const [eventNotice, setEventNotice] = useState('')
+  const onHome = page === 'home'
+
+  // Pantry manager: when a planned event (with "Remind me") is close, add its
+  // missing ingredients to the cart. Runs on load and on returning home.
+  useEffect(() => {
+    if (!active || !onHome) return
+    let alive = true
+    syncEventStock(planKey, api)
+      .then(list => {
+        const hits = list.filter(x => x.count > 0)
+        if (alive && hits.length) {
+          setEventNotice(hits.map(h => `${h.name} is ${h.days === 0 ? 'today' : `in ${h.days} day${h.days === 1 ? '' : 's'}`}: added ${h.count} item${h.count === 1 ? '' : 's'} to your cart`).join(' · '))
+        }
+      })
+      .catch(err => console.warn('event stock sync skipped:', err.message))
+    return () => { alive = false }
+  }, [active, onHome, planKey])
+
   const startGuest = () => {
     setGuestMode(true)          // route all data calls to a fresh in-memory store
     setPage('home'); setNavIndex(0)
@@ -248,6 +271,7 @@ function InnerApp() {
   const signOut = () => {
     if (guest) {
       setGuestMode(false)       // discards everything the guest added
+      clearMemoryPlans()
       setGuest(false)
       return
     }
@@ -346,7 +370,7 @@ function InnerApp() {
         )}
         {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} />}
         {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} />}
-        {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} />}
+        {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} planKey={planKey} />}
       </Shell>
 
       <AddGroceries
@@ -355,6 +379,9 @@ function InnerApp() {
         onCommitted={handleCommitted}
       />
       <CuratingOverlay show={curating} />
+      <Snackbar open={!!eventNotice} autoHideDuration={6000} onClose={() => setEventNotice('')} message={eventNotice}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ '& .MuiSnackbarContent-root': { background: 'rgba(46,158,107,0.95)', color: '#fff', borderRadius: '12px', fontWeight: 600 } }} />
     </>
   )
 }

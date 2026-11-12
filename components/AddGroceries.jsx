@@ -13,6 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { C, glass, glassField, T, PAD } from '../theme'
 import { api } from '../api'
 import WheelPicker from './WheelPicker'
+import CameraCapture, { liveCameraSupported } from './CameraCapture'
 import { QTY_OPTIONS, UNIT_OPTIONS, DEFAULT_UNIT } from '../units'
 
 // Hidden from view but still a real, focusable file input (not display:none),
@@ -34,11 +35,15 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
   const [snack, setSnack] = useState('')
   const [manual, setManual] = useState({ display: '', quantity: '1', unit: DEFAULT_UNIT })
   const [progress, setProgress] = useState('')
+  const [cameraOpen, setCameraOpen] = useState(false)
+  // Live camera needs HTTPS/localhost + getUserMedia; otherwise use the OS picker.
+  const [liveCam, setLiveCam] = useState(liveCameraSupported)
 
   // When the sheet (re)opens, start on the requested tab (camera/email).
   useEffect(() => { if (open) setMode(initialMode) }, [open, initialMode])
 
   const reset = () => {
+    setCameraOpen(false) // unmounting the viewfinder releases the camera
     setStage('input'); setItems([]); setStep(0); setReceiptId(null); setError('')
     setEmailText(''); setManual({ display: '', quantity: '1', unit: DEFAULT_UNIT })
   }
@@ -54,6 +59,12 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
     const input = e.target
     const file = input.files?.[0]
     if (!file) return
+    try { await processPhoto(file) } finally { input.value = '' } // allow re-picking the same photo
+  }
+
+  const onCameraCapture = (file) => { setCameraOpen(false); processPhoto(file) }
+
+  const processPhoto = async (file) => {
     setBusy(true); setError(''); setProgress('Preparing photo…')
     try {
       const res = await api.scanReceipt(file, setProgress)
@@ -66,7 +77,6 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
       setError(`Scan failed: ${err.message}`)
     } finally {
       setBusy(false); setProgress('')
-      input.value = '' // allow picking the same photo again
     }
   }
 
@@ -155,7 +165,13 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
               <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pb: `${PAD * 2}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
                 {mode === 'camera' ? (
                   <Box sx={{ textAlign: 'center', py: `${PAD * 2}px` }}>
-                    {busy ? (
+                    {cameraOpen ? (
+                      <CameraCapture
+                        onCapture={onCameraCapture}
+                        onCancel={() => setCameraOpen(false)}
+                        onUnavailable={() => setLiveCam(false)}
+                      />
+                    ) : busy ? (
                       <Box role="status" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${PAD * 1.5}px`, py: `${PAD * 2}px` }}>
                         <CircularProgress size={30} sx={{ color: C.amber }} />
                         <Typography sx={{ color: '#fff', fontSize: `${T.body}px`, fontWeight: 600 }}>{progress || 'Reading receipt…'}</Typography>
@@ -164,11 +180,18 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: `${PAD * 1.25}px` }}>
                         {/* Real <label>-wrapped inputs: a tap opens the picker natively.
                             (A programmatic .click() on a hidden input is unreliable on iOS.) */}
-                        <Button component="label" fullWidth startIcon={<CameraAltIcon />}
-                          sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(245,166,35,0.48)' } }}>
-                          Take a photo
-                          <Box component="input" type="file" accept="image/*" capture="environment" onChange={onPickImage} sx={visuallyHidden} />
-                        </Button>
+                        {liveCam ? (
+                          <Button fullWidth startIcon={<CameraAltIcon />} onClick={() => { setError(''); setCameraOpen(true) }}
+                            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(245,166,35,0.48)' } }}>
+                            Take a photo
+                          </Button>
+                        ) : (
+                          <Button component="label" fullWidth startIcon={<CameraAltIcon />}
+                            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(245,166,35,0.48)' } }}>
+                            Take a photo
+                            <Box component="input" type="file" accept="image/*" capture="environment" onChange={onPickImage} sx={visuallyHidden} />
+                          </Button>
+                        )}
                         <Button component="label" fullWidth startIcon={<PhotoLibraryIcon />}
                           sx={{ ...glass('neutral', { radius: 30, blur: 14, a: 0.08 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.5}px`, '&:hover': { background: 'rgba(255,255,255,0.14)' } }}>
                           Choose a photo

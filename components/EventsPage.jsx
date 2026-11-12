@@ -7,7 +7,7 @@ import CalendarMonthIcon      from '@mui/icons-material/CalendarMonth'
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
 import NotificationsIcon      from '@mui/icons-material/Notifications'
 import GoBackButton           from './GoBackButton'
-import { C } from '../theme'
+import { C, glass } from '../theme'
 
 const initialEvents = [
   {
@@ -163,7 +163,7 @@ export default function EventsPage({ onBack }) {
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
-      background: '#111',
+      background: 'transparent',
     }}>
 
       {/* ── Header ── */}
@@ -174,7 +174,7 @@ export default function EventsPage({ onBack }) {
             <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '20px' }}>
               Events
             </Typography>
-            <Typography sx={{ color: '#666', fontSize: '13px', mt: '2px' }}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', mt: '2px' }}>
               Upcoming food celebrations
             </Typography>
           </Box>
@@ -182,11 +182,12 @@ export default function EventsPage({ onBack }) {
             onClick={() => setAddOpen(true)}
             size="small"
             sx={{
-              background: C.amber, color: '#1a1000',
-              borderRadius: '20px', textTransform: 'none',
+              ...glass('amber', { radius: 20, blur: 12, a: 0.3 }),
+              color: '#fff',
+              textTransform: 'none',
               fontWeight: 700, fontSize: '13px',
               px: '14px', py: '6px',
-              '&:hover': { background: C.amberDark },
+              '&:hover': { background: 'rgba(245,166,35,0.45)' },
             }}
           >
             + Add Event
@@ -214,19 +215,24 @@ export default function EventsPage({ onBack }) {
       <Dialog
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        PaperProps={{ sx: { background: '#1e1e1e', borderRadius: '20px', p: 1, minWidth: 300 } }}
+        PaperProps={{ sx: {
+          background: 'rgba(18,22,30,0.8)',
+          backdropFilter: 'blur(30px) saturate(160%)',
+          border: `1px solid ${C.glassBorder}`,
+          borderRadius: '20px', p: 1, minWidth: 300,
+        } }}
       >
         <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: '16px' }}>
           Add New Event
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: '#aaa', fontSize: '13px' }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '13px' }}>
             Event creation coming soon. Stay tuned!
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2 }}>
           <Button onClick={() => setAddOpen(false)}
-            sx={{ background: C.amber, color: '#1a1000', borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 2 }}>
+            sx={{ ...glass('amber', { radius: 12, blur: 12, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, px: 2, '&:hover': { background: 'rgba(245,166,35,0.45)' } }}>
             Close
           </Button>
         </DialogActions>

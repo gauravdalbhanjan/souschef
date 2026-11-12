@@ -1,23 +1,29 @@
 import { Box, Typography } from '@mui/material'
-import { C } from '../theme'
+import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates'
+import { C, glass } from '../theme'
 import { dailyTip } from '../data'
 
-export default function DailyTipsCard() {
+export default function DailyTipsCard({ empty = false }) {
+  const tip = empty
+    ? 'Start adding your pantry items to see ready-to-cook meals.'
+    : dailyTip
   return (
     <Box sx={{
-      background: C.amber,
-      borderRadius: '20px',
-      p: '8px',
+      ...glass('amber', { radius: 20, blur: 20 }),
+      p: '12px',
       width: '100%',
       height: '100%',
       boxSizing: 'border-box',
       overflow: 'hidden',
     }}>
-      <Typography sx={{ color: '#1a1000', fontWeight: 800, fontSize: '20px', mb: 0.7 }}>
-        Daily Tips
-      </Typography>
-      <Typography sx={{ color: '#1a1000', fontSize: '13px', fontWeight: 500, lineHeight: 1.55 }}>
-        • {dailyTip}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.9 }}>
+        <TipsAndUpdatesIcon sx={{ color: C.amber, fontSize: 22 }} />
+        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '19px' }}>
+          Daily Tips
+        </Typography>
+      </Box>
+      <Typography sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '13px', fontWeight: 500, lineHeight: 1.55 }}>
+        {tip}
       </Typography>
     </Box>
   )

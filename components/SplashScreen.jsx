@@ -33,10 +33,10 @@ function ClocheIcon({ size = 64, color = '#aaa' }) {
 export function Logo({ size = 'large', splashMode = false }) {
   // On splash: greys (matching the reference image exactly)
   // On login:  amber accent for "Sous" + icon
-  const textColor   = splashMode ? '#aaa'     : '#fff'
-  const accentColor = splashMode ? '#aaa'     : C.amber
-  const sousColor   = splashMode ? '#888'     : C.amber
-  const subColor    = splashMode ? '#666'     : '#888'
+  const textColor   = splashMode ? '#ffffff'  : '#fff'
+  const accentColor = splashMode ? C.amber     : C.amber
+  const sousColor   = splashMode ? C.amber      : C.amber
+  const subColor    = splashMode ? 'rgba(255,255,255,0.6)' : '#888'
 
   const chSize   = size === 'large' ? 72  : 38
   const sousSize = size === 'large' ? 16  : 10
@@ -126,7 +126,8 @@ export default function SplashScreen({ onDone }) {
   return (
     <Box sx={{
       position: 'fixed', inset: 0,
-      background: '#000',
+      background: 'rgba(6,8,12,0.55)',
+      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

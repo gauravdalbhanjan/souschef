@@ -8,7 +8,7 @@ import CloseIcon       from '@mui/icons-material/Close'
 import DragHandleIcon  from '@mui/icons-material/DragHandle'
 import AddIcon         from '@mui/icons-material/Add'
 import ShareIcon       from '@mui/icons-material/Share'
-import { C } from '../theme'
+import { C, glass } from '../theme'
 import { todoItems as initialItems } from '../data'
 
 // Sample favorite contacts
@@ -24,9 +24,10 @@ function itemsToStrings(items) {
   return items.map(it => it.time ? `${it.text} [${it.time}]` : it.text)
 }
 
-export default function TodoCard() {
-  // Saved list state (shown in the card preview)
-  const [savedItems, setSavedItems] = useState(initialItems)
+export default function TodoCard({ empty = false }) {
+  // Saved list state (shown in the card preview). For a brand-new/guest pantry
+  // the to-do list starts blank; otherwise it seeds from sample data.
+  const [savedItems, setSavedItems] = useState(empty ? [] : initialItems)
   // Editor open state
   const [open, setOpen] = useState(false)
   // Draft list while editing (plain strings)
@@ -93,25 +94,24 @@ export default function TodoCard() {
       <Box
         onClick={openEditor}
         sx={{
-          background: C.amber,
-          borderRadius: '20px',
-          p: '8px',
+          ...glass('amber', { radius: 20, blur: 20 }),
+          p: '12px',
           width: '100%',
           height: '100%',
           boxSizing: 'border-box',
           overflow: 'hidden',
           cursor: 'pointer',
-          '&:hover': { filter: 'brightness(0.95)' },
+          '&:hover': { filter: 'brightness(1.12)' },
           transition: 'filter 0.15s',
         }}
       >
-        <Typography sx={{ color: '#1a1000', fontWeight: 800, fontSize: '20px', mb: 0.7 }}>
-          To Do List:
+        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '19px', mb: 0.9 }}>
+          To Do List
         </Typography>
         {savedItems.map((item, i) => (
           <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.45, flexWrap: 'wrap' }}>
-            <Typography sx={{ color: '#1a1000', fontSize: '13px', fontWeight: 500 }}>•</Typography>
-            <Typography sx={{ color: '#1a1000', fontSize: '13px', fontWeight: 500 }}>{item.text}</Typography>
+            <Typography sx={{ color: C.amber, fontSize: '13px', fontWeight: 700 }}>•</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>{item.text}</Typography>
             {item.time && (
               <Chip
                 icon={<AccessTimeIcon sx={{ fontSize: '11px !important', color: '#fff !important' }} />}
@@ -141,12 +141,16 @@ export default function TodoCard() {
           width: '100%',
           maxWidth: 648,
           maxHeight: '90dvh',
-          background: '#1a1a1a',
+          background: 'rgba(18,22,30,0.72)',
+          backdropFilter: 'blur(34px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(34px) saturate(160%)',
+          borderTop: `1px solid ${C.glassBorderStrong}`,
           borderRadius: '24px 24px 0 0',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           outline: 'none',
+          boxShadow: '0 -20px 60px rgba(0,0,0,0.5)',
           animation: 'slideUp 0.25s ease-out',
           '@keyframes slideUp': {
             from: { transform: 'translateY(100%)' },
@@ -155,7 +159,7 @@ export default function TodoCard() {
         }}>
           {/* Drag handle hint */}
           <Box sx={{ display: 'flex', justifyContent: 'center', pt: '10px', pb: '2px', flexShrink: 0 }}>
-            <Box sx={{ width: 40, height: 4, background: '#444', borderRadius: 2 }} />
+            <Box sx={{ width: 40, height: 4, background: 'rgba(255,255,255,0.28)', borderRadius: 2 }} />
           </Box>
 
           {/* Header */}
@@ -245,14 +249,13 @@ export default function TodoCard() {
                 variant="contained"
                 fullWidth
                 sx={{
-                  background: C.amber,
-                  color: '#1a1000',
+                  ...glass('amber', { radius: 30, blur: 14, a: 0.32 }),
+                  color: '#fff',
                   fontWeight: 800,
-                  borderRadius: '30px',
                   textTransform: 'none',
                   fontSize: '15px',
                   py: '10px',
-                  '&:hover': { background: C.amberDark },
+                  '&:hover': { background: 'rgba(245,166,35,0.45)' },
                 }}
               >
                 Save

@@ -1,63 +1,68 @@
 import { Box, Typography, Paper, Tooltip } from '@mui/material'
 import GridViewIcon      from '@mui/icons-material/GridView'
-import ShoppingCartIcon  from '@mui/icons-material/ShoppingCart'
+import Inventory2Icon    from '@mui/icons-material/Inventory2'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
-import PersonAddIcon     from '@mui/icons-material/PersonAdd'
-import { C } from '../theme'
+import EventIcon         from '@mui/icons-material/Event'
+import CameraAltIcon     from '@mui/icons-material/CameraAlt'
+import { C, glass, T, PAD } from '../theme'
 
 const items = [
-  { label: 'menu',      Icon: GridViewIcon,       tip: 'View all meals'        },
-  { label: 'Inventory', Icon: ShoppingCartIcon,   tip: 'Check your inventory'  },
-  { label: 'Routine',   Icon: CalendarMonthIcon,  tip: 'Daily cooking routine' },
-  { label: 'Events',    Icon: PersonAddIcon,      tip: 'Upcoming events'       },
+  { label: 'Menu',    Icon: GridViewIcon,      tip: 'Meal ideas' },
+  { label: 'Pantry',  Icon: Inventory2Icon,    tip: 'Your inventory' },
+  { label: 'Routine', Icon: CalendarMonthIcon, tip: 'Daily routine' },
+  { label: 'Events',  Icon: EventIcon,         tip: 'Upcoming events' },
 ]
 
-export default function BottomNav({ active = 0, onChange }) {
+function NavItem({ label, Icon, tip, active, onClick }) {
   return (
-    <Box sx={{
-      flexShrink: 0,
-      px: '16px',
-      pb: '12px',
-      pt: '6px',
-      background: '#111',
-    }}>
-      <Paper
-        elevation={4}
-        sx={{
-          background: '#2a2a2a',
-          borderRadius: '20px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '40px',
-          py: '10px',
-        }}
-      >
-        {items.map(({ label, Icon, tip }, i) => (
-          <Tooltip key={i} title={tip} placement="top" arrow>
-            <Box
-              onClick={() => onChange?.(i)}
-              sx={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                cursor: 'pointer', px: '10px', py: '6px',
-                borderRadius: '12px',
-                background: active === i ? '#3a3a3a' : 'transparent',
-                transition: 'background .2s',
-                minWidth: 48,
-              }}
-            >
-              <Icon sx={{ color: active === i ? C.amber : '#888', fontSize: 26, transition: 'color .2s' }} />
-              <Typography sx={{
-                color: active === i ? C.amber : '#888',
-                fontSize: '11px', mt: '3px',
-                fontWeight: active === i ? 700 : 400,
-                transition: 'color .2s',
-              }}>
-                {label}
-              </Typography>
+    <Tooltip title={tip} placement="top" arrow>
+      <Box onClick={onClick} sx={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1,
+        cursor: 'pointer', py: `${PAD * 0.75}px`, borderRadius: '14px',
+        background: active ? C.amberGlass : 'transparent',
+        border: active ? `1px solid ${C.amberGlassBorder}` : '1px solid transparent',
+        boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.25)' : 'none',
+        transition: 'background .2s, border .2s',
+      }}>
+        <Icon sx={{ color: active ? C.amber : '#8a8f98', fontSize: 22, transition: 'color .2s' }} />
+        <Typography sx={{ color: active ? C.amber : '#8a8f98', fontSize: `${T.chip}px`, mt: '2px', fontWeight: active ? 700 : 500, transition: 'color .2s' }}>
+          {label}
+        </Typography>
+      </Box>
+    </Tooltip>
+  )
+}
+
+// 5 evenly-spaced buttons: Menu · Pantry · [Camera] · Routine · Events.
+// The camera is inline (same row/level) as the others, tinted amber.
+export default function BottomNav({ active = 0, onChange, onCamera }) {
+  return (
+    <Box sx={{ flexShrink: 0, px: `${PAD * 1.5}px`, pb: `${PAD * 1.5}px`, pt: `${PAD}px`, background: 'transparent' }}>
+      <Paper elevation={0} sx={{ ...glass('dark', { radius: 22, blur: 26, a: 0.5 }), display: 'flex', alignItems: 'center', py: `${PAD}px`, px: `${PAD}px` }}>
+        <NavItem {...items[0]} active={active === 0} onClick={() => onChange?.(0)} />
+        <NavItem {...items[1]} active={active === 1} onClick={() => onChange?.(1)} />
+
+        {/* Camera — inline center button, aligned with the others */}
+        <Tooltip title="Scan a grocery receipt" placement="top" arrow>
+          <Box onClick={onCamera} sx={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1,
+            cursor: 'pointer', py: `${PAD * 0.75}px`,
+          }}>
+            <Box sx={{
+              width: 34, height: 34, borderRadius: '50%',
+              background: `linear-gradient(150deg, ${C.amber} 0%, #e8960e 100%)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+              transition: 'transform .15s', '&:active': { transform: 'scale(0.92)' },
+            }}>
+              <CameraAltIcon sx={{ color: '#1a1000', fontSize: 20 }} />
             </Box>
-          </Tooltip>
-        ))}
+            <Typography sx={{ color: C.amber, fontSize: `${T.chip}px`, mt: '2px', fontWeight: 700 }}>Scan</Typography>
+          </Box>
+        </Tooltip>
+
+        <NavItem {...items[2]} active={active === 2} onClick={() => onChange?.(2)} />
+        <NavItem {...items[3]} active={active === 3} onClick={() => onChange?.(3)} />
       </Paper>
     </Box>
   )

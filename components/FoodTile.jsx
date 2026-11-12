@@ -2,144 +2,88 @@ import { Box, Typography, Chip, Tooltip } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import BoltIcon from '@mui/icons-material/Bolt'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
-import { C } from '../theme'
+import { C, T, PAD } from '../theme'
 
 const matchBg = {
-  green: '#2e7d32',
-  red:   '#c62828',
-  amber: '#e65100',
+  green: 'rgba(46,158,107,0.88)',
+  red:   'rgba(255,95,109,0.88)',
+  amber: 'rgba(230,81,0,0.88)',
 }
 
-export default function FoodTile({ item, width, height = 185, onClick }) {
+const glassChip = {
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  border: '1px solid rgba(255,255,255,0.22)',
+}
+
+export default function FoodTile({ item, width, height = 160, onClick, compact = false }) {
   const bg = matchBg[item.matchColor] || matchBg.green
+  // compact hides the time + kcal chips when the tile is short/narrow
+  const isSmall = compact || height < 120
+
+  const chipSx = (background) => ({
+    background, ...glassChip, color: '#fff', fontWeight: 700,
+    fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', cursor: 'pointer',
+    '& .MuiChip-label': { px: '5px' },
+    '& .MuiChip-icon': { fontSize: '12px !important', color: '#fff !important', ml: '5px !important' },
+  })
 
   return (
     <Box
       onClick={onClick}
       sx={{
-        position: 'relative',
-        borderRadius: '20px',
-        overflow: 'hidden',
-        width: width ? width : '100%',
-        height,
-        cursor: onClick ? 'pointer' : 'default',
-        flexShrink: 0,
-        '&:hover img': { transform: 'scale(1.05)' },
+        position: 'relative', borderRadius: '16px', overflow: 'hidden',
+        width: width || '100%', height,
+        cursor: onClick ? 'pointer' : 'default', flexShrink: 0,
+        border: '1px solid rgba(255,255,255,0.12)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        transition: 'transform .2s, box-shadow .2s',
+        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 34px rgba(0,0,0,0.5)' },
+        '&:hover img': { transform: 'scale(1.06)' },
       }}
     >
-      {/* Image */}
-      <Box
-        component="img"
-        src={item.img}
-        alt={item.name}
-        sx={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          transition: 'transform .3s ease',
-        }}
-      />
+      <Box component="img" src={item.img} alt={item.name}
+        sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform .3s ease' }} />
 
-      {/* Gradient overlay */}
       <Box sx={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.25) 50%, transparent 100%)',
-        pointerEvents: 'none',
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'linear-gradient(to top, rgba(0,0,0,.94) 0%, rgba(0,0,0,.25) 55%, transparent 100%)',
       }} />
 
-      {/* Dish name — 20px */}
+      {/* Dish name */}
       <Typography sx={{
-        position: 'absolute',
-        bottom: 44,
-        left: 10,
-        right: 8,
-        color: '#fff',
-        fontWeight: 800,
-        fontSize: '20px',
-        textShadow: '0 2px 8px rgba(0,0,0,.95)',
-        lineHeight: 1.2,
+        position: 'absolute', bottom: isSmall ? 26 : 32, left: PAD, right: PAD,
+        color: '#fff', fontWeight: T.weightTitle, fontSize: `${T.title}px`,
+        textShadow: '0 2px 8px rgba(0,0,0,.95)', lineHeight: 1.15,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}>
         {item.name}
       </Typography>
 
-      {/* Chips row — styled like reference image */}
+      {/* Chips row */}
       <Box sx={{
-        position: 'absolute',
-        bottom: 10,
-        left: 8,
-        right: 8,
-        display: 'flex',
-        gap: '8px',
-        alignItems: 'center',
+        position: 'absolute', bottom: PAD, left: PAD, right: PAD,
+        display: 'flex', gap: `${PAD * 0.75}px`, alignItems: 'center',
       }}>
-        {/* Inventory / match chip */}
-        <Tooltip title={`${item.match}% ingredients available in your inventory`} placement="top" arrow>
-          <Chip
-            icon={
-              <Inventory2Icon sx={{
-                fontSize: '14px !important',
-                color: '#fff !important',
-                ml: '6px !important',
-              }} />
-            }
-            label={`${item.match}%`}
-            sx={{
-              background: bg,
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '13px',
-              height: 28,
-              borderRadius: '14px',
-              cursor: 'pointer',
-              '& .MuiChip-label': { px: '6px' },
-            }}
-          />
+        <Tooltip title={`${item.match}% of ingredients in your pantry`} placement="top" arrow>
+          <Chip icon={<Inventory2Icon />} label={`${item.match}%`} sx={chipSx(bg)} />
         </Tooltip>
 
-        {/* Time chip */}
-        <Tooltip title={`Cook time: ${item.time}`} placement="top" arrow>
-          <Chip
-            icon={
-              <AccessTimeIcon sx={{
-                fontSize: '14px !important',
-                color: '#fff !important',
-                ml: '6px !important',
-              }} />
-            }
-            label={item.time}
-            sx={{
-              background: C.amberDark,
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '13px',
-              height: 28,
-              borderRadius: '14px',
-              cursor: 'pointer',
-              '& .MuiChip-label': { px: '6px' },
-            }}
-          />
-        </Tooltip>
-
-        {/* kcal — no bg, just icon + text like reference */}
-        <Tooltip title={`Energy: ${item.kcal}`} placement="top" arrow>
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer',
-          }}>
-            <BoltIcon sx={{ color: '#fff', fontSize: 16 }} />
-            <Typography sx={{
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '13px',
-              textShadow: '0 1px 4px rgba(0,0,0,.8)',
-            }}>
-              {item.kcal}
-            </Typography>
-          </Box>
-        </Tooltip>
+        {!isSmall && (
+          <>
+            <Tooltip title={`Cook time: ${item.time}`} placement="top" arrow>
+              <Chip icon={<AccessTimeIcon />} label={item.time} sx={chipSx('rgba(245,166,35,0.82)')} />
+            </Tooltip>
+            <Tooltip title={`Energy: ${item.kcal}`} placement="top" arrow>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
+                <BoltIcon sx={{ color: '#fff', fontSize: 13 }} />
+                <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, textShadow: '0 1px 4px rgba(0,0,0,.8)' }}>
+                  {item.kcal}
+                </Typography>
+              </Box>
+            </Tooltip>
+          </>
+        )}
       </Box>
     </Box>
   )

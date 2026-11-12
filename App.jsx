@@ -1,14 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/material'
-import { Box, Typography, IconButton } from '@mui/material'
-import CameraAltIcon from '@mui/icons-material/CameraAlt'
-import { theme, C } from './theme'
-import { foods } from './data'
+import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
+import { theme, C, glass, T, PAD } from './theme'
+import { api } from './api'
 
 import TimerCard      from './components/TimerCard'
 import TodoCard       from './components/TodoCard'
 import DailyTipsCard  from './components/DailyTipsCard'
-import FoodTile       from './components/FoodTile'
 import BottomNav      from './components/BottomNav'
 import RecipeDetail   from './components/RecipeDetail'
 import CookingMode    from './components/CookingMode'
@@ -17,246 +15,277 @@ import RoutinePage    from './components/RoutinePage'
 import EventsPage     from './components/EventsPage'
 import SplashScreen   from './components/SplashScreen'
 import LoginPage      from './components/LoginPage'
+import AddGroceries   from './components/AddGroceries'
+import FoodTile       from './components/FoodTile'
+import CartPage       from './components/CartPage'
+import Onboarding     from './components/Onboarding'
 
-const PAD    = 12
-const GAP    = 12
-const CARD_H = 200
+const GAP = PAD // 8px
 
-// iPad/product: show 2.5 cards → (w - 2*PAD - 2*GAP) / 2.5
-// iPhone:       show 1.6 cards → (w - 2*PAD - 1*GAP) / 1.6
-function calcCardW(screenW, isMobile) {
-  if (isMobile) return Math.floor((screenW - PAD * 2 - GAP) / 1.6)
-  return Math.floor((screenW - PAD * 2 - GAP * 2) / 2.5)
-}
-
-// ── Horizontal scrollable row ──────────────────────────────────────────────
-function HRow({ children }) {
+// Brief full-screen beat shown while suggestions are (re)computed after a scan
+// or onboarding, so the user never sees a broken/empty state or has to reload.
+function CuratingOverlay({ show }) {
+  if (!show) return null
   return (
     <Box sx={{
-      display: 'flex',
-      gap: `${GAP}px`,
-      px: `${PAD}px`,
-      py: '6px',
-      overflowX: 'auto',
-      overflowY: 'visible',
-      flexShrink: 0,
-      '&::-webkit-scrollbar': { display: 'none' },
-      scrollbarWidth: 'none',
-      scrollSnapType: 'x mandatory',
-      '& > *': { scrollSnapAlign: 'start' },
+      position: 'fixed', inset: 0, zIndex: 9999,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: `${PAD * 2}px`,
+      background: 'rgba(11,14,20,0.72)', backdropFilter: 'blur(14px)',
     }}>
-      {children}
+      <CircularProgress size={34} sx={{ color: C.amber }} />
+      <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, textAlign: 'center', px: 4 }}>
+        Hang in there…
+      </Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center', px: 5, lineHeight: 1.5 }}>
+        We're curating your menu from what's in your pantry.
+      </Typography>
     </Box>
   )
 }
 
-// ── Scan Receipt banner (iPhone only, swipe down to dismiss) ──────────────
-function ScanReceiptBanner({ onDismiss }) {
-  const startY = useRef(null)
-  const [gone, setGone] = useState(false)
-  const [translateY, setTranslateY] = useState(0)
-
-  const onTouchStart = e => { startY.current = e.touches[0].clientY }
-  const onTouchMove  = e => {
-    const dy = e.touches[0].clientY - startY.current
-    if (dy > 0) setTranslateY(dy)
-  }
-  const onTouchEnd = () => {
-    if (translateY > 60) { setGone(true); setTimeout(onDismiss, 280) }
-    else setTranslateY(0)
-  }
-
-  const openCamera = () => {
-    // Create a hidden file input that captures from camera
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.capture = 'environment'   // rear camera
-    input.onchange = (e) => {
-      const file = e.target.files?.[0]
-      if (file) {
-        // Receipt scanned — dismiss banner
-        onDismiss()
-      }
-    }
-    input.click()
-  }
-
-  if (gone) return null
-  return (
-    <Box
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      sx={{
-        mx: `${PAD}px`,
-        mb: '6px',
-        flexShrink: 0,
-        borderRadius: '20px',
-        overflow: 'hidden',
-        position: 'relative',
-        height: 82,
-        transform: `translateY(${translateY}px)`,
-        opacity: translateY > 0 ? Math.max(0, 1 - translateY / 120) : 1,
-        transition: translateY === 0 ? 'transform .28s, opacity .28s' : 'none',
-        cursor: 'grab',
-      }}
-    >
-      <Box
-        component="img"
-        src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&q=60"
-        sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(4px) brightness(.45)' }}
-      />
-      <Box sx={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(10,10,10,.52)',
-        backdropFilter: 'blur(10px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        px: '20px',
-      }}>
-        {/* Tapping the text area also opens camera */}
-        <Box onClick={openCamera} sx={{ cursor: 'pointer' }}>
-          <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '17px' }}>
-            Scan Receipt to start
-          </Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: '11px', mt: '2px' }}>
-            Swipe down to dismiss
-          </Typography>
-        </Box>
-        <IconButton
-          onClick={openCamera}
-          sx={{ background: '#fff', width: 44, height: 44, '&:hover': { background: '#f0f0f0' } }}
-        >
-          <CameraAltIcon sx={{ color: '#222', fontSize: 21 }} />
-        </IconButton>
-      </Box>
-    </Box>
-  )
-}
-
-// ── Dashboard (menu tab) ───────────────────────────────────────────────────
-function Dashboard({ onCaesarClick, isMobile }) {
-  const screenW = isMobile
-    ? (typeof window !== 'undefined' ? Math.min(window.innerWidth, 430) : 393)
-    : 648
-  const cardW = calcCardW(screenW, isMobile)
-  const [showScan, setShowScan] = useState(true)
-
-  const foodRows = [
-    foods.slice(0, 3),
-    foods.slice(3, 6),
-    foods.slice(6, 9),
-  ]
+// ── Dashboard: 3 fixed top tiles + static match-ranked 3-per-row grid ───────
+function Dashboard({ suggestions, loading, pantryCount, onOpenRecipe, onAddGroceries }) {
+  const utilH = 132
+  const pantryEmpty = pantryCount === 0
 
   return (
     <Box sx={{
-      flex: 1,
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      '&::-webkit-scrollbar': { display: 'none' },
-      scrollbarWidth: 'none',
+      flex: 1, display: 'flex', flexDirection: 'column',
+      overflowY: 'auto', overflowX: 'hidden',
+      '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none',
       pt: `${PAD}px`,
-      pb: '4px',
     }}>
-      {/* Row 1: Timer | ToDo | DailyTips */}
-      <HRow>
-        <Box sx={{ width: cardW, height: CARD_H, flexShrink: 0 }}><TimerCard /></Box>
-        <Box sx={{ width: cardW, height: CARD_H, flexShrink: 0 }}><TodoCard /></Box>
-        <Box sx={{ width: cardW, height: CARD_H, flexShrink: 0 }}><DailyTipsCard /></Box>
-      </HRow>
+      {/* Greeting header */}
+      <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0 }}>
+        <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500 }}>
+          Good evening, Chef
+        </Typography>
+        <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
+          What are we cooking?
+        </Typography>
+      </Box>
 
-      {/* Food rows */}
-      {foodRows.map((row, ri) => (
-        <HRow key={ri}>
-          {row.map(food => (
-            <Box key={food.name} sx={{ width: cardW, height: CARD_H, flexShrink: 0 }}>
-              <FoodTile
-                item={food}
-                width={cardW}
-                height={CARD_H}
-                onClick={food.name === 'Caesar Salad' ? onCaesarClick : undefined}
-              />
+      {/* Top row: 3 fixed tiles — Timer | ToDo | DailyTips (all visible, no scroll) */}
+      <Box sx={{ display: 'flex', gap: `${GAP}px`, px: `${PAD}px`, py: `${PAD / 2}px`, flexShrink: 0 }}>
+        <Box sx={{ flex: 1, height: utilH }}><TimerCard /></Box>
+        <Box sx={{ flex: 1, height: utilH }}><TodoCard empty={pantryEmpty} /></Box>
+        <Box sx={{ flex: 1, height: utilH }}><DailyTipsCard empty={pantryEmpty} /></Box>
+      </Box>
+
+      {/* Section label */}
+      <Box sx={{ px: `${PAD}px`, pt: `${PAD}px`, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexShrink: 0 }}>
+        <Typography sx={{ color: '#fff', fontSize: `${T.title}px`, fontWeight: 700 }}>
+          Ready to cook
+        </Typography>
+        <Typography sx={{ color: C.amber, fontSize: `${T.sub}px`, fontWeight: 600 }}>
+          best matches first
+        </Typography>
+      </Box>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress size={26} sx={{ color: C.amber }} />
+        </Box>
+      ) : (pantryEmpty || suggestions.length === 0) ? (
+        // Empty pantry → a single "capacity 0 / 0%" window instead of a grid.
+        <Box sx={{ px: `${PAD}px`, pt: `${PAD}px`, pb: `${PAD}px` }}>
+          <Box
+            onClick={onAddGroceries}
+            sx={{
+              ...glass('amber', { radius: 20, blur: 20, a: 0.10 }),
+              cursor: 'pointer', p: `${PAD * 2.5}px`, textAlign: 'center',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${PAD}px`,
+              '&:hover': { filter: 'brightness(1.1)' }, transition: 'filter .15s',
+            }}
+          >
+            {/* 0% ring */}
+            <Box sx={{ position: 'relative', width: 96, height: 96, mb: `${PAD / 2}px` }}>
+              <CircularProgress variant="determinate" value={100} size={96} thickness={4}
+                sx={{ color: 'rgba(255,255,255,0.10)', position: 'absolute', inset: 0 }} />
+              <CircularProgress variant="determinate" value={0} size={96} thickness={4}
+                sx={{ color: C.amber, position: 'absolute', inset: 0 }} />
+              <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading}px`, lineHeight: 1 }}>0%</Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', fontWeight: 600 }}>stocked</Typography>
+              </Box>
+            </Box>
+            <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.title}px` }}>
+              Pantry capacity: 0
+            </Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: `${T.body}px`, lineHeight: 1.55, maxWidth: 340 }}>
+              0% of ingredients in your pantry. Add items to unlock ready-to-cook meals — tap here or the camera below to scan a receipt.
+            </Typography>
+          </Box>
+        </Box>
+      ) : (
+        // Static grid: 3 meal cards per row, ranked high -> low match
+        <Box sx={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: `${GAP}px`,
+          px: `${PAD}px`, pt: `${PAD}px`, pb: `${PAD}px`,
+        }}>
+          {suggestions.map(dish => (
+            <Box key={dish.slug} sx={{ height: 132 }}>
+              <FoodTile item={dish} height={132} onClick={() => onOpenRecipe(dish)} compact />
             </Box>
           ))}
-        </HRow>
-      ))}
-
-      {/* Scan Receipt — iPhone only */}
-      {isMobile && showScan && (
-        <ScanReceiptBanner onDismiss={() => setShowScan(false)} />
+        </Box>
       )}
+      <Box sx={{ height: `${PAD}px`, flexShrink: 0 }} />
     </Box>
   )
 }
 
-// ── Shell with persistent BottomNav ───────────────────────────────────────
-function Shell({ isMobile, children, navIndex, onNav }) {
+function Shell({ isMobile, children, navIndex, onNav, onCamera }) {
   return (
     <Box sx={{
-      width: isMobile ? '100vw' : 648,
-      mx: 'auto',
-      background: '#111',
-      height: '100dvh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
+      width: isMobile ? '100vw' : 648, mx: 'auto',
+      background: isMobile ? 'transparent' : C.shellBg,
+      backdropFilter: isMobile ? 'none' : 'blur(30px) saturate(150%)',
+      WebkitBackdropFilter: isMobile ? 'none' : 'blur(30px) saturate(150%)',
+      borderLeft: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
+      borderRight: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
+      height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {children}
-      <BottomNav active={navIndex} onChange={onNav} />
+      <BottomNav active={navIndex} onChange={onNav} onCamera={onCamera} />
     </Box>
   )
 }
 
-// ── Inner app (needs ThemeProvider context for useTheme) ──────────────────
 function InnerApp() {
   const muiTheme = useTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
 
-  // 'splash' | 'login' | 'home' | 'inventory' | 'routine' | 'events' | 'recipe' | 'cooking'
-  const [page,     setPage]     = useState('splash')
+  const [page, setPage]         = useState('splash')
   const [navIndex, setNavIndex] = useState(0)
+  const [suggestions, setSuggestions] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [activeSlug, setActiveSlug]   = useState(null)
+  const [cookSession, setCookSession] = useState(null)
+  const [addOpen, setAddOpen]   = useState(false)
+  const [prevPage, setPrevPage] = useState('home')
+  const [curating, setCurating] = useState(false)
+  const [pantryCount, setPantryCount] = useState(0)
+
+  // First-run: show onboarding once (persisted in localStorage).
+  const [needsOnboarding, setNeedsOnboarding] = useState(
+    () => { try { return !localStorage.getItem('souschef_onboarded') } catch { return true } }
+  )
+
+  const refreshSuggestions = useCallback(async () => {
+    try {
+      setLoading(true)
+      // Fetch suggestions + pantry together so the dashboard's empty states
+      // (0% ready-to-cook, blank todos, prompt tip) track the real pantry size.
+      const [s, items] = await Promise.all([
+        api.suggestions(),
+        api.pantry().catch(() => []),
+      ])
+      setSuggestions(s)
+      setPantryCount(Array.isArray(items) ? items.length : 0)
+    } catch (e) {
+      console.warn('suggestions unavailable (no backend?):', e.message)
+      setSuggestions([]) // graceful empty state on Vercel Option A
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { refreshSuggestions() }, [refreshSuggestions])
 
   const handleNav = (i) => {
     setNavIndex(i)
-    const pages = ['home', 'inventory', 'routine', 'events']
-    setPage(pages[i])
+    setPage(['home', 'inventory', 'routine', 'events'][i])
   }
 
-  // Recipe / Cooking don't change navIndex
-  if (page === 'splash') {
-    return <SplashScreen onDone={() => setPage('login')} />
+  const openRecipe = (dish) => { setActiveSlug(dish.slug); setPage('recipe') }
+  const openCart = () => { setPrevPage(page); setPage('cart') }
+
+  // Called after groceries are committed: show a brief "curating" beat while we
+  // refetch suggestions, then land the user back in the app — no manual reload.
+  const handleCommitted = async () => {
+    setAddOpen(false)
+    setCurating(true)
+    await refreshSuggestions()
+    setPage('home'); setNavIndex(0)
+    setCurating(false)
   }
 
-  if (page === 'login') {
-    return <LoginPage onLogin={() => setPage('home')} />
+  const finishOnboarding = () => {
+    try { localStorage.setItem('souschef_onboarded', '1') } catch { /* ignore */ }
+    setNeedsOnboarding(false)
+    setCurating(true)
+    refreshSuggestions().finally(() => setCurating(false))
   }
+
+  if (page === 'splash') return <SplashScreen onDone={() => setPage('login')} />
+  if (page === 'login')  return <LoginPage onLogin={() => setPage('home')} />
+  if (needsOnboarding)   return <Onboarding onDone={finishOnboarding} />
 
   if (page === 'recipe') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav}>
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         <RecipeDetail
+          slug={activeSlug}
           onBack={() => setPage('home')}
-          onStart={() => setPage('cooking')}
+          onStart={(session) => { setCookSession(session); setPage('cooking') }}
+          onViewCart={openCart}
         />
+        <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
+        <CuratingOverlay show={curating} />
       </Shell>
     )
   }
 
   if (page === 'cooking') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav}>
-        <CookingMode onBack={() => setPage('recipe')} />
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+        <CookingMode
+          slug={activeSlug}
+          session={cookSession}
+          onBack={() => setPage('recipe')}
+          onFinished={() => refreshSuggestions()}
+        />
+        <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
+        <CuratingOverlay show={curating} />
+      </Shell>
+    )
+  }
+
+  if (page === 'cart') {
+    return (
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+        <CartPage onBack={() => setPage(prevPage)} />
+        <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
+        <CuratingOverlay show={curating} />
       </Shell>
     )
   }
 
   return (
-    <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav}>
-      {page === 'home'      && <Dashboard onCaesarClick={() => setPage('recipe')} isMobile={isMobile} />}
-      {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} />}
-      {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} />}
-      {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} />}
-    </Shell>
+    <>
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+        {page === 'home' && (
+          <Dashboard
+            suggestions={suggestions}
+            loading={loading}
+            pantryCount={pantryCount}
+            onOpenRecipe={openRecipe}
+            onAddGroceries={() => setAddOpen(true)}
+          />
+        )}
+        {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} />}
+        {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} />}
+        {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} />}
+      </Shell>
+
+      <AddGroceries
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCommitted={handleCommitted}
+      />
+      <CuratingOverlay show={curating} />
+    </>
   )
 }
 

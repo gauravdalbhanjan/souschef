@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Box, Typography, Button, Chip, Tooltip,
   IconButton, Dialog, DialogContent, DialogTitle,
-  LinearProgress, useMediaQuery, useTheme,
+  LinearProgress, CircularProgress, useMediaQuery, useTheme,
 } from '@mui/material'
 import ArrowBackIosNewIcon  from '@mui/icons-material/ArrowBackIosNew'
 import AccessTimeIcon       from '@mui/icons-material/AccessTime'
@@ -14,212 +14,110 @@ import PlayCircleIcon       from '@mui/icons-material/PlayCircle'
 import InfoOutlinedIcon     from '@mui/icons-material/InfoOutlined'
 import SmartDisplayIcon     from '@mui/icons-material/SmartDisplay'
 import CheckCircleIcon      from '@mui/icons-material/CheckCircle'
-import { C } from '../theme'
-import { caesarSteps } from '../cookingData'
+import { C, glass, T, PAD } from '../theme'
+import { api } from '../api'
 
-const TOTAL_SECS = caesarSteps.reduce((s, st) => s + st.duration, 0)
-
-// ── helpers ────────────────────────────────────────────────────────────────
-function fmt(s) {
-  const m = Math.floor(s / 60)
-  const sec = s % 60
-  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
-}
-
-function fmtMin(s) {
-  const m = Math.floor(s / 60)
-  const sec = s % 60
+const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+const fmtMin = (s) => {
+  const m = Math.floor(s / 60), sec = s % 60
   return sec > 0 ? `${m}:${String(sec).padStart(2, '0')} min` : `${m}:00 min`
 }
 
-// Speak text via Web Speech API
 function speak(text) {
   if (!window.speechSynthesis) return
   window.speechSynthesis.cancel()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.rate = 0.92
-  utt.pitch = 1
-  window.speechSynthesis.speak(utt)
+  const u = new SpeechSynthesisUtterance(text)
+  u.rate = 0.92
+  window.speechSynthesis.speak(u)
+}
+function stopSpeech() { if (window.speechSynthesis) window.speechSynthesis.cancel() }
+
+function youtubeUrl(step) {
+  if (step.youtubeUrl) return step.youtubeUrl
+  const q = step.youtubeQuery || step.section
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`
 }
 
-function stopSpeech() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel()
-}
-
-// ── Step tile ──────────────────────────────────────────────────────────────
 function StepTile({ step, isActive, elapsed }) {
-  const [infoOpen, setInfoOpen]       = useState(false)
-  const [videoOpen, setVideoOpen]     = useState(false)
-  const [speaking, setSpeaking]       = useState(false)
+  const [infoOpen, setInfoOpen]   = useState(false)
+  const [videoOpen, setVideoOpen] = useState(false)
+  const [speaking, setSpeaking]   = useState(false)
 
   const remaining = Math.max(0, step.duration - (isActive ? elapsed : 0))
-  const progress  = isActive ? Math.min(100, (elapsed / step.duration) * 100) : (isActive === false && elapsed >= step.duration ? 100 : 0)
+  const progress  = isActive ? Math.min(100, (elapsed / step.duration) * 100) : 0
   const done      = !isActive && elapsed >= step.duration
 
   const handleSpeak = () => {
-    const text = step.instructions.map(i => i.text + (i.highlight ? i.highlight + (i.after || '') : '')).join('. ')
     if (speaking) { stopSpeech(); setSpeaking(false); return }
-    speak(`Step: ${step.section}. ${text}. Pro tip: ${step.tip}`)
+    const text = step.instructions.map(i => i.text + (i.highlight || '') + (i.after || '')).join('. ')
+    speak(`Step: ${step.section}. ${text}. Tip: ${step.tip || ''}`)
     setSpeaking(true)
-    // reset icon when speech ends
-    const utt = new SpeechSynthesisUtterance('')
-    utt.onend = () => setSpeaking(false)
   }
 
   return (
-    <Box sx={{ mb: '16px' }}>
-      {/* Header row */}
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        mb: '8px',
-        px: '2px',
-      }}>
-        {/* Section name + done check */}
+    <Box sx={{ mb: `${PAD * 1.5}px` }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: `${PAD}px`, px: '2px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {done && <CheckCircleIcon sx={{ color: '#66bb6a', fontSize: 18 }} />}
-          <Typography sx={{
-            color: isActive ? '#fff' : '#aaa',
-            fontWeight: isActive ? 700 : 500,
-            fontSize: '15px',
-          }}>
+          {done && <CheckCircleIcon sx={{ color: '#66d19e', fontSize: 17 }} />}
+          <Typography sx={{ color: isActive ? '#fff' : 'rgba(255,255,255,0.6)', fontWeight: isActive ? 700 : 500, fontSize: `${T.title}px` }}>
             {step.section}
           </Typography>
         </Box>
-
-        {/* Action icons + time chip */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Info */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px` }}>
           <Tooltip title="How to do this step" arrow>
-            <IconButton size="small" onClick={() => setInfoOpen(true)}
-              sx={{ color: isActive ? '#ccc' : '#555', p: '4px' }}>
-              <InfoOutlinedIcon sx={{ fontSize: 18 }} />
+            <IconButton size="small" onClick={() => setInfoOpen(true)} sx={{ color: isActive ? '#ccc' : '#555', p: '3px' }}><InfoOutlinedIcon sx={{ fontSize: 17 }} /></IconButton>
+          </Tooltip>
+          <Tooltip title="Watch tutorial" arrow>
+            <IconButton size="small" onClick={() => setVideoOpen(true)} sx={{ color: isActive ? '#ccc' : '#555', p: '3px' }}><SmartDisplayIcon sx={{ fontSize: 17 }} /></IconButton>
+          </Tooltip>
+          <Tooltip title={speaking ? 'Stop' : 'Read aloud'} arrow>
+            <IconButton size="small" onClick={handleSpeak} sx={{ color: isActive ? (speaking ? C.amber : '#ccc') : '#555', p: '3px' }}>
+              {speaking ? <StopCircleIcon sx={{ fontSize: 17 }} /> : <VolumeUpIcon sx={{ fontSize: 17 }} />}
             </IconButton>
           </Tooltip>
-
-          {/* YouTube */}
-          <Tooltip title="Watch tutorial on YouTube" arrow>
-            <IconButton size="small" onClick={() => setVideoOpen(true)}
-              sx={{ color: isActive ? '#ccc' : '#555', p: '4px' }}>
-              <SmartDisplayIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
-
-          {/* Speaker */}
-          <Tooltip title={speaking ? 'Stop reading' : 'Read instructions aloud'} arrow>
-            <IconButton size="small" onClick={handleSpeak}
-              sx={{ color: isActive ? (speaking ? C.amber : '#ccc') : '#555', p: '4px' }}>
-              {speaking
-                ? <StopCircleIcon sx={{ fontSize: 18 }} />
-                : <VolumeUpIcon   sx={{ fontSize: 18 }} />}
-            </IconButton>
-          </Tooltip>
-
-          {/* Time chip */}
-          <Chip
-            icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />}
-            label={fmtMin(remaining)}
-            size="small"
-            sx={{
-              background: isActive ? C.amberDark : '#333',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '12px',
-              height: 26,
-              borderRadius: '13px',
-              '& .MuiChip-label': { px: '6px' },
-            }}
-          />
+          <Chip icon={<AccessTimeIcon sx={{ fontSize: '11px !important', color: '#fff !important', ml: '5px !important' }} />}
+            label={fmtMin(remaining)} size="small"
+            sx={{ background: isActive ? 'rgba(245,166,35,0.85)' : 'rgba(255,255,255,0.1)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', '& .MuiChip-label': { px: '6px' } }} />
         </Box>
       </Box>
 
-      {/* Progress bar (active step only) */}
       {isActive && (
-        <LinearProgress
-          variant="determinate"
-          value={progress}
-          sx={{
-            height: 3, borderRadius: 2, mb: '8px',
-            background: '#333',
-            '& .MuiLinearProgress-bar': { background: C.amber },
-          }}
-        />
+        <LinearProgress variant="determinate" value={progress}
+          sx={{ height: 3, borderRadius: 2, mb: `${PAD}px`, background: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { background: C.amber } }} />
       )}
 
-      {/* Instruction card */}
-      <Box sx={{
-        background: isActive ? '#1a3320' : '#1a1a1a',
-        borderRadius: '20px',
-        p: '14px 16px',
-        border: isActive ? '1px solid #2d5a3a' : '1px solid transparent',
-        transition: 'all .3s',
-      }}>
+      <Box sx={{ ...(isActive ? glass('green', { radius: 16, blur: 20 }) : glass('neutral', { radius: 16, blur: 14, a: 0.045 })), p: `${PAD * 1.5}px`, transition: 'all .3s' }}>
         {step.instructions.map((ins, ii) => (
-          <Box key={ii} sx={{ display: 'flex', gap: '8px', mb: ii < step.instructions.length - 1 ? '10px' : 0 }}>
-            <Typography sx={{ color: '#888', fontSize: '14px', mt: '1px', flexShrink: 0 }}>•</Typography>
-            <Typography sx={{ color: isActive ? '#e0e0e0' : '#666', fontSize: '14px', lineHeight: 1.6 }}>
+          <Box key={ii} sx={{ display: 'flex', gap: `${PAD}px`, mb: ii < step.instructions.length - 1 ? `${PAD * 1.25}px` : 0 }}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.body}px`, mt: '1px' }}>•</Typography>
+            <Typography sx={{ color: isActive ? '#e6e6e6' : 'rgba(255,255,255,0.45)', fontSize: `${T.body}px`, lineHeight: 1.55 }}>
               {ins.text}
-              {ins.highlight && (
-                <Box component="span" sx={{ color: C.amber, fontWeight: 600 }}>{ins.highlight}</Box>
-              )}
+              {ins.highlight && <Box component="span" sx={{ color: C.amber, fontWeight: 600 }}>{ins.highlight}</Box>}
               {ins.after}
             </Typography>
           </Box>
         ))}
       </Box>
 
-      {/* ── Info Dialog ── */}
       <Dialog open={infoOpen} onClose={() => setInfoOpen(false)}
-        PaperProps={{ sx: { background: '#1e1e1e', borderRadius: '20px', p: 1, maxWidth: 400, width: '90vw' } }}>
-        <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: '16px', pb: 0.5 }}>
-          💡 How to: {step.section}
-        </DialogTitle>
+        PaperProps={{ sx: { background: 'rgba(18,22,30,0.85)', backdropFilter: 'blur(30px)', border: `1px solid ${C.glassBorder}`, borderRadius: '20px', p: 1, maxWidth: 400, width: '90vw' } }}>
+        <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title + 2}px` }}>💡 {step.section}</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: '#ccc', fontSize: '14px', lineHeight: 1.65, mb: 2 }}>
-            {step.tip}
-          </Typography>
-          {step.instructions.map((ins, ii) => (
-            <Box key={ii} sx={{ display: 'flex', gap: '8px', mb: '8px' }}>
-              <Typography sx={{ color: C.amber, fontSize: '14px', flexShrink: 0, fontWeight: 700 }}>{ii + 1}.</Typography>
-              <Typography sx={{ color: '#ddd', fontSize: '14px', lineHeight: 1.55 }}>
-                {ins.text}{ins.highlight}<Box component="span" sx={{ color: '#aaa' }}>{ins.after}</Box>
-              </Typography>
-            </Box>
-          ))}
-          <Button fullWidth onClick={() => setInfoOpen(false)}
-            sx={{ mt: 1, background: C.amber, color: '#1a1000', borderRadius: '20px', textTransform: 'none', fontWeight: 700 }}>
-            Got it
-          </Button>
+          <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: `${T.body}px`, lineHeight: 1.6, mb: 2 }}>{step.tip}</Typography>
+          <Button fullWidth onClick={() => setInfoOpen(false)} sx={{ ...glass('amber', { radius: 20, blur: 12, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700 }}>Got it</Button>
         </DialogContent>
       </Dialog>
 
-      {/* ── YouTube Dialog ── */}
       <Dialog open={videoOpen} onClose={() => setVideoOpen(false)}
-        PaperProps={{ sx: { background: '#1e1e1e', borderRadius: '20px', p: 1, maxWidth: 400, width: '90vw' } }}>
-        <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: '16px', pb: 0.5 }}>
-          ▶ Watch Tutorial
-        </DialogTitle>
+        PaperProps={{ sx: { background: 'rgba(18,22,30,0.85)', backdropFilter: 'blur(30px)', border: `1px solid ${C.glassBorder}`, borderRadius: '20px', p: 1, maxWidth: 400, width: '90vw' } }}>
+        <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title + 2}px` }}>▶ Watch Tutorial</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: '#ccc', fontSize: '14px', lineHeight: 1.6, mb: 2 }}>
-            Watch a YouTube tutorial for <strong style={{ color: '#fff' }}>{step.section}</strong>.
+          <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: `${T.body}px`, lineHeight: 1.6, mb: 2 }}>
+            Tutorial for <strong style={{ color: '#fff' }}>{step.section}</strong>.
           </Typography>
-          <Button
-            fullWidth
-            startIcon={<SmartDisplayIcon />}
-            onClick={() => { window.open(step.youtubeUrl, '_blank'); setVideoOpen(false) }}
-            sx={{
-              background: '#ff0000', color: '#fff',
-              borderRadius: '20px', textTransform: 'none',
-              fontWeight: 700, fontSize: '14px', py: 1,
-              '&:hover': { background: '#cc0000' },
-            }}
-          >
+          <Button fullWidth startIcon={<SmartDisplayIcon />} onClick={() => { window.open(youtubeUrl(step), '_blank'); setVideoOpen(false) }}
+            sx={{ background: '#ff0000', color: '#fff', borderRadius: '20px', textTransform: 'none', fontWeight: 700, py: 1, '&:hover': { background: '#cc0000' } }}>
             Open on YouTube
-          </Button>
-          <Button fullWidth onClick={() => setVideoOpen(false)}
-            sx={{ mt: 1, color: '#888', textTransform: 'none', fontSize: '13px' }}>
-            Cancel
           </Button>
         </DialogContent>
       </Dialog>
@@ -227,241 +125,146 @@ function StepTile({ step, isActive, elapsed }) {
   )
 }
 
-// ── Main CookingMode component ─────────────────────────────────────────────
-export default function CookingMode({ onBack }) {
-  const muiTheme  = useTheme()
-  const isMobile  = useMediaQuery(muiTheme.breakpoints.down('sm'))
+export default function CookingMode({ slug, session, onBack, onFinished }) {
+  const muiTheme = useTheme()
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
 
+  const [recipe, setRecipe]   = useState(null)
+  const [loading, setLoading] = useState(true)
   const [totalElapsed, setTotalElapsed] = useState(0)
-  const [running, setRunning]           = useState(true)
-  const [currentStep, setCurrentStep]   = useState(0)
+  const [running, setRunning] = useState(true)
+  const [finishing, setFinishing] = useState(false)
+  const [finished, setFinished]   = useState(false)
   const intervalRef = useRef(null)
 
-  // Build cumulative step end times
-  const stepEnds = caesarSteps.reduce((acc, st, i) => {
-    acc.push((acc[i - 1] || 0) + st.duration)
-    return acc
-  }, [])
+  useEffect(() => {
+    let alive = true
+    api.recipe(slug).then(r => { if (alive) setRecipe(r) }).finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [slug])
 
-  // Derived: elapsed time within each step
-  const getStepElapsed = (stepIdx) => {
-    const start = stepIdx === 0 ? 0 : stepEnds[stepIdx - 1]
-    return Math.max(0, totalElapsed - start)
-  }
-
+  const steps = recipe?.steps || []
+  const TOTAL_SECS = steps.reduce((s, st) => s + st.duration, 0)
+  const stepEnds = steps.reduce((acc, st, i) => { acc.push((acc[i - 1] || 0) + st.duration); return acc }, [])
+  const getStepElapsed = (idx) => Math.max(0, totalElapsed - (idx === 0 ? 0 : stepEnds[idx - 1]))
   const activeStep = stepEnds.findIndex(end => totalElapsed < end)
-  // -1 means all done
-  const allDone = activeStep === -1
+  const allDone = steps.length > 0 && activeStep === -1
 
   useEffect(() => {
-    if (running && !allDone) {
+    if (running && !allDone && steps.length) {
       intervalRef.current = setInterval(() => {
-        setTotalElapsed(e => {
-          const next = e + 1
-          if (next >= TOTAL_SECS) { clearInterval(intervalRef.current); return TOTAL_SECS }
-          return next
-        })
+        setTotalElapsed(e => (e + 1 >= TOTAL_SECS ? TOTAL_SECS : e + 1))
       }, 1000)
     } else {
       clearInterval(intervalRef.current)
     }
     return () => clearInterval(intervalRef.current)
-  }, [running, allDone])
+  }, [running, allDone, steps.length, TOTAL_SECS])
 
-  // Jump to next / prev step
-  const goToStep = (idx) => {
-    if (idx < 0) return
-    const target = idx === 0 ? 0 : stepEnds[idx - 1]
-    setTotalElapsed(target)
-    setCurrentStep(idx)
+  const goToStep = (idx) => { if (idx >= 0) setTotalElapsed(idx === 0 ? 0 : stepEnds[idx - 1]) }
+  const overallProgress = TOTAL_SECS ? Math.min(100, (totalElapsed / TOTAL_SECS) * 100) : 0
+
+  // Finish -> deplete the pantry via the backend, then notify parent.
+  const finishCooking = async () => {
+    if (!session?.sessionId) { onFinished?.(); return }
+    setFinishing(true)
+    try {
+      await api.completeCook(session.sessionId)
+      setFinished(true)
+      onFinished?.()
+    } catch (e) {
+      console.error('complete failed', e)
+    } finally {
+      setFinishing(false)
+    }
   }
 
-  const overallProgress = Math.min(100, (totalElapsed / TOTAL_SECS) * 100)
+  if (loading || !recipe) {
+    return <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={28} sx={{ color: C.amber }} /></Box>
+  }
 
   return (
-    <Box sx={{
-      width: isMobile ? '100vw' : 648,
-      maxWidth: isMobile ? '100vw' : 648,
-      mx: 'auto',
-      background: '#111',
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-
-      {/* ── Hero image ── */}
-      <Box sx={{ position: 'relative', height: 220, flexShrink: 0 }}>
-        <Box
-          component="img"
-          src="https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800&q=80"
-          alt="Caesar Salad"
-          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-        <Box sx={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.1) 65%, transparent 100%)',
-        }} />
-
-        {/* Go Back */}
-        <Button
-          onClick={onBack}
-          startIcon={<ArrowBackIosNewIcon sx={{ fontSize: '13px !important' }} />}
-          sx={{
-            position: 'absolute', top: 14, left: 12,
-            background: 'rgba(55,55,55,0.88)',
-            color: '#fff', borderRadius: '20px',
-            textTransform: 'none', fontWeight: 600, fontSize: '0.8rem',
-            px: 1.8, py: 0.5, backdropFilter: 'blur(4px)',
-            '&:hover': { background: 'rgba(80,80,80,.9)' },
-          }}
-        >
+    <Box sx={{ width: isMobile ? '100vw' : 648, mx: 'auto', background: 'transparent', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Hero */}
+      <Box sx={{ position: 'relative', height: 200, flexShrink: 0 }}>
+        <Box component="img" src={recipe.img} alt={recipe.name} sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.1) 65%, transparent 100%)' }} />
+        <Button onClick={onBack} startIcon={<ArrowBackIosNewIcon sx={{ fontSize: '12px !important' }} />}
+          sx={{ position: 'absolute', top: PAD * 1.5, left: PAD * 1.5, ...glass('dark', { radius: 20, blur: 10, a: 0.5 }), color: '#fff', textTransform: 'none', fontWeight: 600, fontSize: `${T.body}px`, px: 1.8, py: 0.5 }}>
           Go Back
         </Button>
-
-        {/* Pause/Resume */}
-        <Tooltip title={running ? 'Pause timer' : 'Resume timer'} arrow>
-          <IconButton
-            onClick={() => setRunning(r => !r)}
-            sx={{
-              position: 'absolute', top: 10, right: 12,
-              background: 'rgba(55,55,55,0.88)',
-              backdropFilter: 'blur(4px)',
-              color: running ? C.amber : '#aaa',
-              '&:hover': { background: 'rgba(80,80,80,.9)' },
-            }}
-          >
-            {running
-              ? <StopCircleIcon  sx={{ fontSize: 26 }} />
-              : <PlayCircleIcon  sx={{ fontSize: 26 }} />}
+        <Tooltip title={running ? 'Pause' : 'Resume'} arrow>
+          <IconButton onClick={() => setRunning(r => !r)}
+            sx={{ position: 'absolute', top: PAD, right: PAD * 1.5, ...glass('dark', { radius: 40, blur: 10, a: 0.5 }), color: running ? C.amber : '#aaa' }}>
+            {running ? <StopCircleIcon sx={{ fontSize: 24 }} /> : <PlayCircleIcon sx={{ fontSize: 24 }} />}
           </IconButton>
         </Tooltip>
-
-        {/* Name + chips */}
-        <Box sx={{ position: 'absolute', bottom: 14, left: 14 }}>
-          <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '20px', mb: '6px', textShadow: '0 2px 8px rgba(0,0,0,.9)' }}>
-            Caesar Salad
-          </Typography>
-          <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Chip icon={<Inventory2Icon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />}
-              label="72%" size="small"
-              sx={{ background: '#2e7d32', color: '#fff', fontWeight: 700, fontSize: '13px', height: 26, borderRadius: '13px', '& .MuiChip-label': { px: '6px' } }} />
-            <Chip icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />}
-              label="10 mins" size="small"
-              sx={{ background: C.amberDark, color: '#fff', fontWeight: 700, fontSize: '13px', height: 26, borderRadius: '13px', '& .MuiChip-label': { px: '6px' } }} />
-            <Chip icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />}
-              label="350 kcal" size="small"
-              sx={{ background: '#37474f', color: '#fff', fontWeight: 700, fontSize: '13px', height: 26, borderRadius: '13px', '& .MuiChip-label': { px: '6px' } }} />
+        <Box sx={{ position: 'absolute', bottom: PAD * 1.5, left: PAD * 1.5 }}>
+          <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading}px`, mb: `${PAD * 0.75}px`, textShadow: '0 2px 8px rgba(0,0,0,.9)' }}>{recipe.name}</Typography>
+          <Box sx={{ display: 'flex', gap: `${PAD}px`, flexWrap: 'wrap' }}>
+            <Chip icon={<Inventory2Icon sx={{ fontSize: '11px !important', color: '#fff !important', ml: '5px !important' }} />} label={`${recipe.match}%`} size="small" sx={{ background: 'rgba(46,158,107,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', '& .MuiChip-label': { px: '6px' } }} />
+            <Chip icon={<AccessTimeIcon sx={{ fontSize: '11px !important', color: '#fff !important', ml: '5px !important' }} />} label={recipe.time} size="small" sx={{ background: 'rgba(245,166,35,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', '& .MuiChip-label': { px: '6px' } }} />
+            <Chip icon={<BoltIcon sx={{ fontSize: '11px !important', color: '#fff !important', ml: '5px !important' }} />} label={recipe.kcal} size="small" sx={{ background: 'rgba(55,71,79,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', '& .MuiChip-label': { px: '6px' } }} />
           </Box>
         </Box>
       </Box>
 
-      {/* ── Live timer bar ── */}
-      <Box sx={{
-        px: '16px', pt: '14px', pb: '4px', flexShrink: 0,
-        background: '#111',
-      }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: '6px' }}>
-          <Typography sx={{ color: '#aaa', fontSize: '12px' }}>
-            {allDone ? '🎉 All done!' : `Step ${(activeStep === -1 ? caesarSteps.length : activeStep) + (activeStep === -1 ? 0 : 1)} of ${caesarSteps.length}`}
+      {/* Timer bar */}
+      <Box sx={{ px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD / 2}px`, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: `${PAD * 0.75}px` }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.sub}px` }}>
+            {allDone ? '🎉 All done!' : `Step ${(activeStep === -1 ? steps.length : activeStep + 1)} of ${steps.length}`}
           </Typography>
-          <Typography sx={{ color: C.amber, fontWeight: 700, fontSize: '15px', fontVariantNumeric: 'tabular-nums' }}>
+          <Typography sx={{ color: C.amber, fontWeight: 700, fontSize: `${T.title}px`, fontVariantNumeric: 'tabular-nums' }}>
             {fmt(totalElapsed)} / {fmt(TOTAL_SECS)}
           </Typography>
         </Box>
-        <LinearProgress
-          variant="determinate"
-          value={overallProgress}
-          sx={{
-            height: 5, borderRadius: 3,
-            background: '#2a2a2a',
-            '& .MuiLinearProgress-bar': { background: C.amber },
-          }}
-        />
+        <LinearProgress variant="determinate" value={overallProgress}
+          sx={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { background: `linear-gradient(90deg, ${C.amber}, #ff5f6d)` } }} />
       </Box>
 
-      {/* ── Description ── */}
-      <Box sx={{ px: '16px', pt: '10px', pb: '4px', flexShrink: 0 }}>
-        <Typography sx={{ color: '#888', fontSize: '13px', lineHeight: 1.6 }}>
-          The makings of a classic: grilled white meat chicken, Parmesan Cheese and seasoned croutons, all atop a blend of romaine and iceberg lettuce.
-        </Typography>
-      </Box>
+      {recipe.description && (
+        <Box sx={{ px: `${PAD * 1.5}px`, pt: `${PAD * 1.25}px`, pb: `${PAD / 2}px`, flexShrink: 0 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.body}px`, lineHeight: 1.55 }}>{recipe.description}</Typography>
+        </Box>
+      )}
 
-      {/* ── Step tiles (scrollable) ── */}
-      <Box sx={{
-        flex: 1,
-        overflowY: 'auto',
-        px: '16px',
-        pt: '8px',
-        pb: '8px',
-        '&::-webkit-scrollbar': { width: 3 },
-        '&::-webkit-scrollbar-thumb': { background: '#333', borderRadius: 2 },
-      }}>
-        {caesarSteps.map((step, idx) => (
-          <StepTile
-            key={step.id}
-            step={step}
-            isActive={idx === activeStep}
-            elapsed={getStepElapsed(idx)}
-          />
+      {/* Steps */}
+      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 1.5}px`, pt: `${PAD}px`, pb: `${PAD}px`, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.2)', borderRadius: 2 } }}>
+        {steps.map((step, idx) => (
+          <StepTile key={idx} step={step} isActive={idx === activeStep} elapsed={getStepElapsed(idx)} />
         ))}
 
-        {/* All done message */}
         {allDone && (
-          <Box sx={{
-            textAlign: 'center', py: 4,
-            background: '#1a3320', borderRadius: '20px', mt: 2,
-          }}>
+          <Box sx={{ textAlign: 'center', py: 4, ...glass('green', { radius: 16, blur: 20 }), mt: 2 }}>
             <Typography sx={{ fontSize: '2rem', mb: 1 }}>🎉</Typography>
-            <Typography sx={{ color: '#66bb6a', fontWeight: 700, fontSize: '18px' }}>
-              Caesar Salad is ready!
-            </Typography>
-            <Typography sx={{ color: '#aaa', fontSize: '13px', mt: 1 }}>
-              Bon appétit!
+            <Typography sx={{ color: '#66d19e', fontWeight: 700, fontSize: `${T.title + 5}px` }}>{recipe.name} is ready!</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, mt: 1 }}>
+              {finished ? 'Pantry updated — ingredients deducted.' : 'Tap Done to update your pantry.'}
             </Typography>
           </Box>
         )}
       </Box>
 
-      {/* ── Bottom: Back / Next step buttons ── */}
-      <Box sx={{
-        flexShrink: 0,
-        display: 'flex',
-        gap: '12px',
-        px: '16px',
-        py: '12px',
-        background: 'linear-gradient(to top, #111 70%, transparent)',
-      }}>
-        <Button
-          fullWidth
-          onClick={() => goToStep(Math.max(0, (activeStep === -1 ? caesarSteps.length - 1 : activeStep) - 1))}
+      {/* Bottom buttons */}
+      <Box sx={{ flexShrink: 0, display: 'flex', gap: `${PAD}px`, px: `${PAD * 1.5}px`, py: `${PAD * 1.5}px`, background: 'linear-gradient(to top, rgba(11,14,20,0.85) 55%, transparent)', backdropFilter: 'blur(6px)' }}>
+        <Button fullWidth onClick={() => goToStep(Math.max(0, (activeStep === -1 ? steps.length - 1 : activeStep) - 1))}
           disabled={activeStep === 0 || (activeStep === -1 && totalElapsed === 0)}
-          sx={{
-            background: '#2979ff', color: '#fff',
-            borderRadius: '30px', textTransform: 'none',
-            fontWeight: 700, fontSize: '15px', py: '12px',
-            '&:hover': { background: '#1565c0' },
-            '&:disabled': { background: '#333', color: '#555' },
-          }}
-        >
+          sx={{ ...glass('neutral', { radius: 30, blur: 14, a: 0.08 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(255,255,255,0.16)' }, '&:disabled': { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.3)' } }}>
           Back
         </Button>
-        <Button
-          fullWidth
-          onClick={() => {
-            const next = activeStep === -1 ? caesarSteps.length : activeStep + 1
-            if (next < caesarSteps.length) goToStep(next)
-          }}
-          disabled={allDone}
-          sx={{
-            background: '#2979ff', color: '#fff',
-            borderRadius: '30px', textTransform: 'none',
-            fontWeight: 700, fontSize: '15px', py: '12px',
-            '&:hover': { background: '#1565c0' },
-            '&:disabled': { background: '#333', color: '#555' },
-          }}
-        >
-          {allDone ? 'Done ✓' : 'Next'}
-        </Button>
+        {allDone ? (
+          <Button fullWidth onClick={finishCooking} disabled={finishing || finished}
+            startIcon={finishing ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : null}
+            sx={{ ...glass('green', { radius: 30, blur: 14, a: 0.4 }), color: '#fff', textTransform: 'none', fontWeight: 800, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(46,158,107,0.55)' }, '&:disabled': { color: 'rgba(255,255,255,0.6)' } }}>
+            {finished ? 'Pantry updated ✓' : (finishing ? 'Updating…' : 'Done — update pantry')}
+          </Button>
+        ) : (
+          <Button fullWidth onClick={() => { const next = activeStep === -1 ? steps.length : activeStep + 1; if (next < steps.length) goToStep(next) }}
+            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.34 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(245,166,35,0.5)' } }}>
+            Next
+          </Button>
+        )}
       </Box>
     </Box>
   )

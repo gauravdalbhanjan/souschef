@@ -6,7 +6,7 @@ import {
 } from '@mui/material'
 import EditIcon     from '@mui/icons-material/Edit'
 import GoBackButton from './GoBackButton'
-import { C } from '../theme'
+import { C, glass, glassField } from '../theme'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -125,7 +125,7 @@ export default function RoutinePage({ onBack }) {
   }
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#111' }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
 
       {/* ── Header ── */}
       <Box sx={{ px: '16px', pt: '16px', pb: '10px', flexShrink: 0 }}>
@@ -133,7 +133,7 @@ export default function RoutinePage({ onBack }) {
         <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '20px', mt: '12px' }}>
           Routine
         </Typography>
-        <Typography sx={{ color: '#666', fontSize: '13px', mt: '2px' }}>
+        <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', mt: '2px' }}>
           Your daily meal schedule
         </Typography>
       </Box>
@@ -150,26 +150,24 @@ export default function RoutinePage({ onBack }) {
       <Dialog
         open={!!editing}
         onClose={() => setEditing(null)}
-        PaperProps={{ sx: { background: '#1e1e1e', borderRadius: '20px', p: 1, minWidth: 300 } }}
+        PaperProps={{ sx: {
+          background: 'rgba(18,22,30,0.8)',
+          backdropFilter: 'blur(30px) saturate(160%)',
+          border: `1px solid ${C.glassBorder}`,
+          borderRadius: '20px', p: 1, minWidth: 300,
+        } }}
       >
         <DialogTitle sx={{ color: '#fff', fontWeight: 700, fontSize: '16px' }}>
           Edit {editing?.meal} Plan
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: '#aaa', fontSize: '13px', mb: 1.5 }}>Time slot</Typography>
+          <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', mb: 1.5 }}>Time slot</Typography>
           <TextField
             fullWidth value={editTime}
             onChange={e => setEditTime(e.target.value)}
             placeholder="e.g. 7 - 8:00 AM"
             variant="outlined" size="small"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: '#fff', borderRadius: '12px',
-                '& fieldset': { borderColor: '#333' },
-                '&:hover fieldset': { borderColor: C.amber },
-                '&.Mui-focused fieldset': { borderColor: C.amber },
-              },
-            }}
+            sx={glassField}
           />
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2 }}>
@@ -177,7 +175,7 @@ export default function RoutinePage({ onBack }) {
             Cancel
           </Button>
           <Button onClick={saveEdit}
-            sx={{ background: C.amber, color: '#1a1000', borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 2 }}>
+            sx={{ ...glass('amber', { radius: 12, blur: 12, a: 0.32 }), color: '#fff', textTransform: 'none', fontWeight: 700, px: 2, '&:hover': { background: 'rgba(245,166,35,0.45)' } }}>
             Save
           </Button>
         </DialogActions>

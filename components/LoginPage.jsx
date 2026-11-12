@@ -5,7 +5,7 @@ import {
 } from '@mui/material'
 import VisibilityIcon    from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
-import { C } from '../theme'
+import { C, glass, glassField } from '../theme'
 import { Logo } from './SplashScreen'
 
 export default function LoginPage({ onLogin }) {
@@ -13,24 +13,13 @@ export default function LoginPage({ onLogin }) {
   const [password, setPassword] = useState('')
   const [showPw,   setShowPw]   = useState(false)
 
-  const fieldSx = {
-    '& .MuiOutlinedInput-root': {
-      background: '#1e1e1e',
-      borderRadius: '14px',
-      color: '#fff',
-      '& fieldset': { borderColor: '#2a2a2a' },
-      '&:hover fieldset': { borderColor: '#555' },
-      '&.Mui-focused fieldset': { borderColor: C.amber },
-    },
-    '& .MuiInputLabel-root': { color: '#555' },
-    '& .MuiInputLabel-root.Mui-focused': { color: C.amber },
-  }
+  const fieldSx = glassField
 
   return (
     <Box sx={{
       position: 'fixed',
       inset: 0,
-      background: '#111',
+      background: 'transparent',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -40,14 +29,16 @@ export default function LoginPage({ onLogin }) {
     }}>
 
       {/* ── Logo — centered ── */}
-      <Box sx={{ mb: '48px', textAlign: 'center' }}>
+      <Box sx={{ mb: '32px', textAlign: 'center' }}>
         <Logo size="small" splashMode={false} />
       </Box>
 
-      {/* ── Form card — centered ── */}
+      {/* ── Form card — glass, centered ── */}
       <Box sx={{
         width: '100%',
         maxWidth: 400,
+        ...glass('neutral', { radius: 28, blur: 30, a: 0.06 }),
+        p: '28px 24px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -58,7 +49,7 @@ export default function LoginPage({ onLogin }) {
           <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '26px', mb: '6px' }}>
             Welcome back
           </Typography>
-          <Typography sx={{ color: '#555', fontSize: '14px' }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px' }}>
             Sign in to continue
           </Typography>
         </Box>
@@ -103,15 +94,14 @@ export default function LoginPage({ onLogin }) {
           variant="contained"
           sx={{
             mt: '4px',
-            background: C.amber,
-            color: '#1a1000',
+            ...glass('amber', { radius: 30, blur: 14, a: 0.32 }),
+            color: '#fff',
             fontWeight: 800,
             fontSize: '16px',
-            borderRadius: '30px',
             py: '13px',
             textTransform: 'none',
-            boxShadow: `0 4px 20px rgba(245,166,35,0.35)`,
-            '&:hover': { background: C.amberDark },
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 28px rgba(245,166,35,0.3)`,
+            '&:hover': { background: 'rgba(245,166,35,0.48)' },
           }}
         >
           Sign In
@@ -121,13 +111,13 @@ export default function LoginPage({ onLogin }) {
         <Typography
           onClick={onLogin}
           sx={{
-            color: '#555',
+            color: 'rgba(255,255,255,0.55)',
             fontSize: '14px',
             cursor: 'pointer',
             textDecoration: 'underline',
             mt: '4px',
             textAlign: 'center',
-            '&:hover': { color: '#aaa' },
+            '&:hover': { color: '#fff' },
           }}
         >
           Continue as Guest

@@ -24,7 +24,7 @@ function ShoppingListCard() {
 function NotesCard() {
   return (
     <DarkCard sx={{ px: 1.8, py: 1.5, flex: 1 }}>
-      <Typography sx={{ color: C.amber, fontWeight: 700, fontSize: '0.8rem', mb: 0.8 }}>
+      <Typography sx={{ color: 'var(--accent-text)', fontWeight: 700, fontSize: '0.8rem', mb: 0.8 }}>
         Notes
       </Typography>
       {notes.map((n, i) => (
@@ -40,7 +40,7 @@ function NotesCard() {
 function DailyTipsCard() {
   return (
     <DarkCard sx={{ px: 1.8, py: 1.5 }}>
-      <Typography sx={{ color: C.amber, fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>
+      <Typography sx={{ color: 'var(--accent-text)', fontWeight: 700, fontSize: '0.8rem', mb: 0.5 }}>
         Daily tips
       </Typography>
       <Typography sx={{ color: C.textSec, fontSize: '0.68rem', lineHeight: 1.5 }}>

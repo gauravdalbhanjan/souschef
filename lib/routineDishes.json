@@ -1,0 +1,198 @@
+{
+  "coffee": {
+    "name": "Coffee",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Cup_of_coffee_with_latte_art_2016.jpg/960px-Cup_of_coffee_with_latte_art_2016.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Abdulrohmatt",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Cup_of_coffee_with_latte_art_2016.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Coffee",
+        "quantity": 15,
+        "unit": "g"
+      },
+      {
+        "display": "Milk",
+        "quantity": 60,
+        "unit": "ml"
+      }
+    ]
+  },
+  "tea": {
+    "name": "Tea",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1f/Cup_of_tea_at_the_Gorreana_tea_factory.jpg/960px-Cup_of_tea_at_the_Gorreana_tea_factory.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Kritzolina",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Cup_of_tea_at_the_Gorreana_tea_factory.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Tea",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Milk",
+        "quantity": 30,
+        "unit": "ml"
+      }
+    ]
+  },
+  "rice": {
+    "name": "Rice bowl",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/7/77/Steamed_rice_in_bowl_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Anna Frodesiak",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Steamed_rice_in_bowl_01.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Rice",
+        "quantity": 75,
+        "unit": "g"
+      }
+    ]
+  },
+  "pasta": {
+    "name": "Pasta",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/004_2015_06_07_Kurven_und_Spiralen.jpg/960px-004_2015_06_07_Kurven_und_Spiralen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Friedrich Haag",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:004_2015_06_07_Kurven_und_Spiralen.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Pasta",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "display": "Tomato",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 1,
+        "unit": "clove"
+      },
+      {
+        "display": "Parmesan",
+        "quantity": 15,
+        "unit": "g"
+      }
+    ]
+  },
+  "oatmeal": {
+    "name": "Oatmeal",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/Balanced_Vegan_Breakfast.png/960px-Balanced_Vegan_Breakfast.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Hogan.jac",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Balanced_Vegan_Breakfast.png"
+    },
+    "ingredients": [
+      {
+        "display": "Oats",
+        "quantity": 40,
+        "unit": "g"
+      },
+      {
+        "display": "Milk",
+        "quantity": 200,
+        "unit": "ml"
+      },
+      {
+        "display": "Banana",
+        "quantity": 0.5,
+        "unit": "unit"
+      }
+    ]
+  },
+  "toast": {
+    "name": "Toast",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Butter_Toast.jpg/960px-Butter_Toast.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Gannu03",
+      "license": "CC BY-SA 3.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Butter_Toast.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Bread",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "display": "Butter",
+        "quantity": 10,
+        "unit": "g"
+      }
+    ]
+  },
+  "eggs": {
+    "name": "Scrambled eggs",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Scrambled_eggs_with_basil.jpg/960px-Scrambled_eggs_with_basil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "OmegaFallon",
+      "license": "CC BY 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Scrambled_eggs_with_basil.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Egg",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Butter",
+        "quantity": 5,
+        "unit": "g"
+      }
+    ]
+  },
+  "smoothie": {
+    "name": "Smoothie",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Fresh_fruit_smoothie_preparation_with_assorted_fruits_on_a_table.jpg/960px-Fresh_fruit_smoothie_preparation_with_assorted_fruits_on_a_table.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Shixart1985",
+      "license": "CC BY 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Fresh_fruit_smoothie_preparation_with_assorted_fruits_on_a_table.jpg"
+    },
+    "ingredients": [
+      {
+        "display": "Banana",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Berries",
+        "quantity": 80,
+        "unit": "g"
+      },
+      {
+        "display": "Greek Yogurt",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "display": "Milk",
+        "quantity": 100,
+        "unit": "ml"
+      }
+    ]
+  }
+}

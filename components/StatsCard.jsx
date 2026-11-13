@@ -5,8 +5,8 @@ import DarkCard from './DarkCard'
 import { C } from '../theme'
 
 const stats = [
-  { icon: <RestaurantIcon sx={{ color: C.amber, fontSize: 20 }} />, val: '23', label: 'Meals Prepared' },
-  { icon: <ScheduleIcon   sx={{ color: C.amber, fontSize: 20 }} />, val: '43h', label: 'Total hours spend' },
+  { icon: <RestaurantIcon sx={{ color: 'var(--accent-text)', fontSize: 20 }} />, val: '23', label: 'Meals Prepared' },
+  { icon: <ScheduleIcon   sx={{ color: 'var(--accent-text)', fontSize: 20 }} />, val: '43h', label: 'Total hours spend' },
 ]
 
 export default function StatsCard() {

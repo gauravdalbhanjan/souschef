@@ -11,6 +11,9 @@ import { parseReceiptText } from './lib/receiptParser.js'
 import { parseEmailReceipt } from './lib/emailParser.js'
 import { ocrImage } from './lib/ocr.js'
 import { localCatalog } from './lib/localCatalog.js'
+import { metaFor } from './lib/recipeMeta.js'
+import { stepsFor, hasWrittenSteps } from './lib/steps.js'
+import { applyStaples, catalogStaples } from './lib/staples.js'
 
 function must({ data, error }) {
   if (error) throw new Error(error.message)
@@ -44,13 +47,33 @@ function loadCatalog() {
 }
 
 // ── Pantry helpers ──────────────────────────────────────────────────────────
-// Adds dishCount ("N Dishes"), daysLeft (shelf life minus days since purchase)
-// and lowStock (expiring soon, or low quantity on a frequently used item).
-function decoratePantry(rows, byRecipe) {
+// Adds dishCount ("N Dishes"), daysLeft (shelf life minus days since purchase),
+// mealsLeft and a lowStock flag + reason.
+//
+// Running low when ANY of:
+//   • out of stock (quantity 0),
+//   • expiring within 3 days (it will be gone soon either way), or
+//   • not enough left for 2 more servings of the hungriest recipe that uses it
+//     (e.g. 50 g chicken when Chicken Strips needs 175 g per serving).
+// Items no recipe uses only count as low when out or expiring.
+const LOW_DAYS = 3
+const LOW_MEALS = 2
+
+function decoratePantry(rows, byRecipe, recipes = []) {
+  const servings = new Map(recipes.map(r => [r.id, r.servings || 1]))
   const dishes = new Map()
-  for (const ings of byRecipe.values()) {
+  const perServing = new Map() // canonical -> { base, amount } largest single-serving need
+  for (const [recipeId, ings] of byRecipe) {
+    const s = servings.get(recipeId) || 1
     for (const c of new Set(ings.map(x => x.canonical))) dishes.set(c, (dishes.get(c) || 0) + 1)
+    for (const ing of ings) {
+      if (ing.staple) continue
+      const need = toBase(ing.quantity / s, ing.unit)
+      const cur = perServing.get(ing.canonical)
+      if (!cur || (cur.base === need.base && need.amount > cur.amount)) perServing.set(ing.canonical, need)
+    }
   }
+
   const now = Date.now()
   return rows.map(row => {
     const shelf = shelfLifeDays(row.canonical)
@@ -60,8 +83,18 @@ function decoratePantry(rows, byRecipe) {
       daysLeft = Math.max(0, shelf - (Number.isNaN(elapsed) ? 0 : elapsed))
     }
     const dishCount = dishes.get(row.canonical) || 0
-    const lowStock = daysLeft <= 3 || (row.quantity <= 2 && dishCount >= 2)
-    return { ...row, dishCount, daysLeft, shelfLife: shelf, lowStock }
+
+    let mealsLeft = null
+    const need = perServing.get(row.canonical)
+    const stock = toBase(row.quantity, row.unit)
+    if (need && need.amount > 0 && need.base === stock.base) mealsLeft = Math.floor(stock.amount / need.amount)
+
+    let lowReason = null
+    if (Number(row.quantity) <= 0) lowReason = 'Out of stock'
+    else if (daysLeft <= LOW_DAYS) lowReason = daysLeft === 0 ? 'Expires today' : `Expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+    else if (mealsLeft != null && mealsLeft < LOW_MEALS) lowReason = mealsLeft === 0 ? 'Not enough for a meal' : 'Enough for 1 meal'
+
+    return { ...row, dishCount, daysLeft, shelfLife: shelf, mealsLeft, lowStock: !!lowReason, lowReason }
   })
 }
 
@@ -171,8 +204,11 @@ function buildHandoff(items) {
 }
 
 function shapeSuggestion(r) {
+  const meta = metaFor(r.slug)
   return {
-    id: r.id, slug: r.slug, name: r.name, img: r.image,
+    id: r.id, slug: r.slug, name: r.name,
+    img: meta.image || r.image, imageCredit: meta.imageCredit,
+    categories: meta.categories || [], protein: meta.protein, proteinG: meta.proteinG,
     time: `${r.time_mins} mins`, time_mins: r.time_mins,
     kcal: `${r.kcal} kcal`, servings: r.servings,
     match: r.match, matchColor: r.matchColor, haveAll: r.haveAll,
@@ -184,12 +220,13 @@ function shapeSuggestion(r) {
 const cloudApi = {
   // ── suggestions & recipes ─────────────────────────────────────────────────
   async suggestions() {
-    const [{ recipes, byRecipe }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
-    return rankRecipes(recipes, byRecipe, pantry).map(shapeSuggestion)
+    const [{ recipes, byRecipe: base }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
+    return rankRecipes(recipes, applyStaples(base), pantry).map(shapeSuggestion)
   },
 
   async recipe(slug) {
-    const [{ recipes, byRecipe }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
+    const [{ recipes, byRecipe: base }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
+    const byRecipe = applyStaples(base)
     const recipe = recipes.find(r => r.slug === slug)
     if (!recipe) throw new Error('Recipe not found')
     const scored = rankRecipes([recipe], byRecipe, pantry)[0]
@@ -200,17 +237,27 @@ const cloudApi = {
         staple: !!ing.staple, have: ing.staple ? true : !missing,
       }
     })
+    // Prefer the bundled, detailed steps so the cloud matches the app build
+    // even before the seed is re-run.
+    const steps = hasWrittenSteps(slug)
+      ? stepsFor(slug, recipe.name, byRecipe.get(recipe.id) || [])
+      : (recipe.steps || [])
     return {
       ...shapeSuggestion(scored),
-      steps: recipe.steps || [],
+      steps,
       ingredients,
     }
   },
 
   // ── pantry ────────────────────────────────────────────────────────────────
   async pantry() {
-    const [{ byRecipe }, rows] = await Promise.all([loadCatalog().catch(() => ({ byRecipe: new Map() })), listPantryRaw()])
-    return decoratePantry(rows, byRecipe)
+    const [{ recipes, byRecipe }, rows] = await Promise.all([loadCatalog().catch(() => localCatalog()), listPantryRaw()])
+    return decoratePantry(rows, applyStaples(byRecipe), recipes)
+  },
+  // Assumed staples + any tracked amount (a regular pantry row).
+  async staples() {
+    const [{ recipes, byRecipe }, rows] = await Promise.all([loadCatalog().catch(() => localCatalog()), listPantryRaw()])
+    return catalogStaples(recipes, byRecipe).map(st => ({ ...st, tracked: rows.find(r => r.canonical === st.canonical) || null }))
   },
   addPantry: (item) => commitPantry([item]),
   async updatePantry(id, quantity) { must(await supabase.from('pantry').update({ quantity: Number(quantity) }).eq('id', id)) },
@@ -367,11 +414,12 @@ const sortedPantry = () =>
 const guestApi = {
   async suggestions() {
     const { recipes, byRecipe } = localCatalog()
-    return rankRecipes(recipes, byRecipe, mem.pantry).map(shapeSuggestion)
+    return rankRecipes(recipes, applyStaples(byRecipe), mem.pantry).map(shapeSuggestion)
   },
 
   async recipe(slug) {
-    const { recipes, byRecipe } = localCatalog()
+    const { recipes, byRecipe: base } = localCatalog()
+    const byRecipe = applyStaples(base)
     const recipe = recipes.find(r => r.slug === slug)
     if (!recipe) throw new Error('Recipe not found')
     const scored = rankRecipes([recipe], byRecipe, mem.pantry)[0]
@@ -385,7 +433,11 @@ const guestApi = {
     return { ...shapeSuggestion(scored), steps: recipe.steps || [], ingredients }
   },
 
-  async pantry() { return decoratePantry(sortedPantry(), localCatalog().byRecipe) },
+  async pantry() { const { recipes, byRecipe } = localCatalog(); return decoratePantry(sortedPantry(), applyStaples(byRecipe), recipes) },
+  async staples() {
+    const { recipes, byRecipe } = localCatalog()
+    return catalogStaples(recipes, byRecipe).map(st => ({ ...st, tracked: mem.pantry.find(r => r.canonical === st.canonical) || null }))
+  },
   async addPantry(item) { return memMergePantry([item]) },
   async updatePantry(id, quantity) {
     const row = mem.pantry.find(p => p.id === id)

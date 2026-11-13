@@ -13,7 +13,7 @@ const matchBg = {
 const glassChip = {
   backdropFilter: 'blur(8px)',
   WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid rgba(255,255,255,0.22)',
+  border: '1px solid rgba(var(--ink),0.22)',
 }
 
 export default function FoodTile({ item, width, height = 160, onClick, compact = false }) {
@@ -22,7 +22,7 @@ export default function FoodTile({ item, width, height = 160, onClick, compact =
   const isSmall = compact || height < 120
 
   const chipSx = (background) => ({
-    background, ...glassChip, color: '#fff', fontWeight: 700,
+    background, ...glassChip, color: 'var(--fg)', fontWeight: 700,
     fontSize: `${T.chip}px`, height: 22, borderRadius: '11px', cursor: 'pointer',
     '& .MuiChip-label': { px: '5px' },
     '& .MuiChip-icon': { fontSize: '12px !important', color: '#fff !important', ml: '5px !important' },
@@ -35,7 +35,7 @@ export default function FoodTile({ item, width, height = 160, onClick, compact =
         position: 'relative', borderRadius: '16px', overflow: 'hidden',
         width: width || '100%', height,
         cursor: onClick ? 'pointer' : 'default', flexShrink: 0,
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid rgba(var(--ink),0.12)',
         boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
         transition: 'transform .2s, box-shadow .2s',
         '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 34px rgba(0,0,0,0.5)' },
@@ -53,7 +53,7 @@ export default function FoodTile({ item, width, height = 160, onClick, compact =
       {/* Dish name */}
       <Typography sx={{
         position: 'absolute', bottom: isSmall ? 26 : 32, left: PAD, right: PAD,
-        color: '#fff', fontWeight: T.weightTitle, fontSize: `${T.title}px`,
+        color: 'var(--fg)', fontWeight: T.weightTitle, fontSize: `${T.title}px`,
         textShadow: '0 2px 8px rgba(0,0,0,.95)', lineHeight: 1.15,
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}>
@@ -72,11 +72,11 @@ export default function FoodTile({ item, width, height = 160, onClick, compact =
         {!isSmall && (
           <>
             <Tooltip title={`Cook time: ${item.time}`} placement="top" arrow>
-              <Chip icon={<AccessTimeIcon />} label={item.time} sx={chipSx('rgba(245,166,35,0.82)')} />
+              <Chip icon={<AccessTimeIcon />} label={item.time} sx={chipSx('rgba(var(--accent-rgb),0.82)')} />
             </Tooltip>
             <Tooltip title={`Energy: ${item.kcal}`} placement="top" arrow>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
-                <BoltIcon sx={{ color: '#fff', fontSize: 13 }} />
+                <BoltIcon sx={{ color: '#fff', fontSize: 13, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,.8))' }} />
                 <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, textShadow: '0 1px 4px rgba(0,0,0,.8)' }}>
                   {item.kcal}
                 </Typography>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Box, Typography } from '@mui/material'
-import { C } from '../theme'
 
 // ── Cloche SVG icon (serving dome — replaces "e" in "chef") ────────────────
 // Matches the reference: circle on top + dome arc below
@@ -33,10 +32,11 @@ function ClocheIcon({ size = 64, color = '#aaa' }) {
 export function Logo({ size = 'large', splashMode = false }) {
   // On splash: greys (matching the reference image exactly)
   // On login:  amber accent for "Sous" + icon
-  const textColor   = splashMode ? '#ffffff'  : '#fff'
-  const accentColor = splashMode ? C.amber     : C.amber
-  const sousColor   = splashMode ? C.amber      : C.amber
-  const subColor    = splashMode ? 'rgba(255,255,255,0.6)' : '#888'
+  // Theme tokens, so the wordmark stays sharp on light and dark.
+  const textColor   = 'var(--fg)'
+  const accentColor = 'var(--accent)'
+  const sousColor   = 'var(--accent-text)'
+  const subColor    = 'var(--text-2)'
 
   const chSize   = size === 'large' ? 72  : 38
   const sousSize = size === 'large' ? 16  : 10
@@ -44,7 +44,9 @@ export function Logo({ size = 'large', splashMode = false }) {
   const iconSize = size === 'large' ? 68  : 36
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    // Adaptive wrapper: a soft drop-shadow lifts the hat + wordmark off any canvas.
+    <Box role="img" aria-label="SousChef, cooking made easy"
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.22))' }}>
 
       {/* Row: "Sous" sits top-left relative to the chef text */}
       <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-end' }}>
@@ -126,7 +128,7 @@ export default function SplashScreen({ onDone }) {
   return (
     <Box sx={{
       position: 'fixed', inset: 0,
-      background: 'rgba(6,8,12,0.55)',
+      background: 'var(--canvas)', backgroundColor: 'var(--canvas-base)', // same canvas as the app
       backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',

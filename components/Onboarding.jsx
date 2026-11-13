@@ -27,22 +27,22 @@ export default function Onboarding({ onDone }) {
         ...(primary
           ? glass('amber', { radius: 20, blur: 14, a: 0.30 })
           : glass('neutral', { radius: 20, blur: 12, a: 0.07 })),
-        color: '#fff', textTransform: 'none', justifyContent: 'flex-start',
+        color: 'var(--fg)', textTransform: 'none', justifyContent: 'flex-start',
         px: `${PAD * 2}px`, py: `${PAD * 1.75}px`, gap: `${PAD * 1.5}px`,
-        '&:hover': { background: primary ? 'rgba(245,166,35,0.42)' : 'rgba(255,255,255,0.13)' },
+        '&:hover': { background: primary ? 'rgba(var(--accent-rgb),0.42)' : 'rgba(var(--ink),0.13)' },
       }}>
       <Box sx={{
         width: 44, height: 44, borderRadius: '14px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: primary ? 'rgba(245,166,35,0.25)' : 'rgba(255,255,255,0.08)',
+        background: primary ? 'rgba(var(--accent-rgb),0.25)' : 'rgba(var(--ink),0.08)',
       }}>
         {icon}
       </Box>
       <Box sx={{ textAlign: 'left', flex: 1 }}>
-        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.body}px`, lineHeight: 1.2 }}>{label}</Typography>
-        <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 500, fontSize: `${T.sub}px`, mt: '2px' }}>{sub}</Typography>
+        <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.body}px`, lineHeight: 1.2 }}>{label}</Typography>
+        <Typography sx={{ color: 'var(--text-2)', fontWeight: 500, fontSize: `${T.sub}px`, mt: '2px' }}>{sub}</Typography>
       </Box>
-      <ArrowForwardIcon sx={{ color: 'rgba(255,255,255,0.4)', fontSize: 20 }} />
+      <ArrowForwardIcon sx={{ color: 'var(--text-3)', fontSize: 20 }} />
     </Button>
   )
 
@@ -56,10 +56,10 @@ export default function Onboarding({ onDone }) {
         {/* Header */}
         <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 4}px`, pb: `${PAD * 2}px`, flexShrink: 0 }}>
           <Box sx={{ mb: `${PAD * 2}px` }}><Logo size="small" splashMode={false} /></Box>
-          <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading + 6}px`, lineHeight: 1.18 }}>
+          <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 6}px`, lineHeight: 1.18 }}>
             Let's start by adding your current pantry capacity
           </Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, mt: `${PAD}px`, lineHeight: 1.5 }}>
+          <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, mt: `${PAD}px`, lineHeight: 1.5 }}>
             Scan a grocery receipt or paste a receipt email and we'll stock your pantry — then suggest dishes you can actually cook. Not ready? Skip for now and add items anytime.
           </Typography>
         </Box>
@@ -67,14 +67,14 @@ export default function Onboarding({ onDone }) {
         {/* Actions */}
         <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, display: 'flex', flexDirection: 'column', gap: `${PAD * 1.5}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
           {action(
-            <CameraAltIcon sx={{ color: C.amber, fontSize: 24 }} />,
+            <CameraAltIcon sx={{ color: 'var(--accent-text)', fontSize: 24 }} />,
             'Scan receipt',
             'Open camera or choose a photo',
             () => openAdd('camera'),
             true,
           )}
           {action(
-            <EmailIcon sx={{ color: '#fff', fontSize: 22 }} />,
+            <EmailIcon sx={{ color: 'var(--fg)', fontSize: 22 }} />,
             'Email receipt',
             'Paste a forwarded receipt email',
             () => openAdd('email'),
@@ -85,7 +85,7 @@ export default function Onboarding({ onDone }) {
         {/* Skip pantry setup */}
         <Box sx={{ px: `${PAD * 2}px`, py: `${PAD * 1.5}px`, borderTop: `1px solid ${C.glassBorder}`, textAlign: 'center' }}>
           <Typography onClick={() => onDone(false)}
-            sx={{ color: 'rgba(255,255,255,0.65)', fontSize: `${T.body}px`, fontWeight: 600, cursor: 'pointer', py: `${PAD}px`, '&:hover': { color: '#fff' } }}>
+            sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, fontWeight: 600, cursor: 'pointer', py: `${PAD}px`, '&:hover': { color: 'var(--fg)' } }}>
             Skip for now
           </Typography>
         </Box>

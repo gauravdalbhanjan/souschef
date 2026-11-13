@@ -1,35 +1,43 @@
+// Recipe detail: hero photo, one unified ingredient checklist (missing items
+// carry an inline "Add to cart"), a short step outline, and one primary CTA.
 import { useState, useEffect } from 'react'
-import { Box, Typography, Chip, Button, IconButton, CircularProgress, useMediaQuery, useTheme } from '@mui/material'
+import { Box, Typography, Button, IconButton, CircularProgress } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
-import ShoppingCartIcon    from '@mui/icons-material/ShoppingCart'
-import AccessTimeIcon      from '@mui/icons-material/AccessTime'
-import BoltIcon            from '@mui/icons-material/Bolt'
-import Inventory2Icon      from '@mui/icons-material/Inventory2'
-import RestaurantIcon      from '@mui/icons-material/Restaurant'
-import CheckIcon           from '@mui/icons-material/Check'
-import CloseIcon           from '@mui/icons-material/Close'
-import { C, glass, T, PAD } from '../theme'
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
+import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
+import BoltIcon from '@mui/icons-material/Bolt'
+import RestaurantIcon from '@mui/icons-material/Restaurant'
+import CheckIcon from '@mui/icons-material/Check'
+import { T, PAD } from '../theme'
 import { api } from '../api'
+import { unitLabel } from '../units'
+import { surface, ctaPrimary } from './Ambient'
+import { backButtonSx } from './GoBackButton'
 
-const greenBox = { ...glass('green', { radius: 16, blur: 20 }), p: `${PAD * 1.5}px` }
+const PREP = 'Get everything ready'
 
-const matchBg = { green: '#2e9e6b', amber: '#e65100', red: '#c62828' }
+// Facts on the hero: fixed light-on-photo styling (always over an image).
+function HeroFact({ icon, children }) {
+  return (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', height: 26, px: '10px', borderRadius: '13px',
+      background: 'rgba(11,15,25,0.55)', border: '1px solid rgba(255,255,255,0.14)', backdropFilter: 'blur(10px)', color: '#F8FAFC',
+      fontSize: `${T.sub}px`, fontWeight: 700 }}>
+      {icon}{children}
+    </Box>
+  )
+}
 
 export default function RecipeDetail({ slug, onBack, onStart, onViewCart }) {
-  const muiTheme = useTheme()
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
-  const TILE_W = isMobile ? '100%' : 300
-
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
-  const [addingCart, setAddingCart] = useState(false)
-  const [addedCart, setAddedCart] = useState(false)
+  const [adding, setAdding] = useState(null)       // canonical being added, or 'all'
+  const [inCart, setInCart] = useState(() => new Set())
   const [err, setErr] = useState('')
 
   useEffect(() => {
     let alive = true
-    setLoading(true)
     api.recipe(slug)
       .then(r => { if (alive) setRecipe(r) })
       .catch(e => { if (alive) setErr(e.message) })
@@ -39,161 +47,165 @@ export default function RecipeDetail({ slug, onBack, onStart, onViewCart }) {
 
   const handleStart = async () => {
     setStarting(true)
-    try {
-      const session = await api.startCook(slug, recipe?.servings)
-      onStart?.(session)
-    } catch (e) {
-      setErr(e.message); setStarting(false)
-    }
+    try { onStart?.(await api.startCook(slug, recipe?.servings)) }
+    catch (e) { setErr(e.message); setStarting(false) }
   }
 
-  const handleAddToCart = async () => {
-    if (!recipe.missing?.length) return
-    setAddingCart(true)
+  // Add one missing item (or all of them) to the cart.
+  const addToCart = async (items, key) => {
+    setAdding(key); setErr('')
     try {
-      await api.addToCart(recipe.missing.map(m => ({
-        display: m.display, canonical: m.canonical, quantity: m.needed, unit: m.unit, source: slug,
-      })))
-      setAddedCart(true)
-    } catch (e) {
-      setErr(e.message)
-    } finally {
-      setAddingCart(false)
-    }
+      await api.addToCart(items.map(m => ({ display: m.display, canonical: m.canonical, quantity: m.needed, unit: m.unit, source: slug })))
+      setInCart(s => new Set([...s, ...items.map(m => m.canonical)]))
+    } catch (e) { setErr(e.message) }
+    finally { setAdding(null) }
   }
 
   if (loading) {
-    return (
-      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress size={28} sx={{ color: C.amber }} />
-      </Box>
-    )
+    return <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress size={28} sx={{ color: 'var(--accent-text)' }} /></Box>
   }
   if (!recipe) {
     return (
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-        <Typography sx={{ color: '#ff8a8a' }}>{err || 'Recipe not found'}</Typography>
-        <Button onClick={onBack} sx={{ color: '#fff' }}>Go Back</Button>
+        <Typography role="alert" sx={{ color: 'var(--danger)' }}>{err || 'Recipe not found'}</Typography>
+        <Button onClick={onBack} sx={backButtonSx}>Go Back</Button>
       </Box>
     )
   }
 
-  const missing = recipe.ingredients.filter(i => !i.have && !i.staple)
+  const missingFor = (ing) => (recipe.missing || []).find(m => m.canonical === ing.canonical)
+  const missing = (recipe.missing || []).filter(m => !inCart.has(m.canonical))
+  const haveCount = recipe.ingredients.filter(i => i.have || i.staple).length
+  const steps = (recipe.steps || []).filter(s => s.section !== PREP)
+  const credit = recipe.imageCredit
+  const creditWord = credit ? (credit.source || 'Source').split(/[\s/]/)[0] : null
 
   return (
-    <Box sx={{ width: isMobile ? '100vw' : 648, mx: 'auto', background: 'transparent', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       {/* Hero */}
-      <Box sx={{ position: 'relative', height: 220, flexShrink: 0 }}>
+      <Box sx={{ position: 'relative', height: 230, flexShrink: 0 }}>
         <Box component="img" src={recipe.img} alt={recipe.name} sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,.1) 60%, transparent 100%)' }} />
-
+        <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(11,15,25,.92) 0%, rgba(11,15,25,.15) 60%, rgba(11,15,25,.35) 100%)' }} />
         <Button onClick={onBack} startIcon={<ArrowBackIosNewIcon sx={{ fontSize: '12px !important' }} />}
-          sx={{ position: 'absolute', top: PAD * 1.5, left: PAD * 1.5, ...glass('dark', { radius: 20, blur: 10, a: 0.5 }), color: '#fff', textTransform: 'none', fontWeight: 600, fontSize: `${T.body}px`, px: 1.8, py: 0.5, '&:hover': { background: 'rgba(40,44,52,.7)' } }}>
+          sx={{ ...backButtonSx, position: 'absolute', top: PAD * 1.5, left: PAD * 1.5, background: 'rgba(11,15,25,0.5)', borderColor: 'rgba(255,255,255,0.14)', color: '#F8FAFC',
+            '&:hover': { background: 'rgba(11,15,25,0.7)' } }}>
           Go Back
         </Button>
-        <IconButton onClick={onViewCart}
-          sx={{ position: 'absolute', top: PAD, right: PAD * 1.5, ...glass('dark', { radius: 40, blur: 10, a: 0.5 }), color: '#fff', width: 40, height: 40 }}>
-          <ShoppingCartIcon sx={{ fontSize: 19 }} />
+        <IconButton onClick={onViewCart} aria-label="View cart"
+          sx={{ position: 'absolute', top: PAD * 1.5, right: PAD * 1.5, width: 40, height: 40, color: '#F8FAFC', background: 'rgba(11,15,25,0.5)',
+            border: '1px solid rgba(255,255,255,0.14)', backdropFilter: 'blur(10px)', '&:hover': { background: 'rgba(11,15,25,0.7)' } }}>
+          <ShoppingCartOutlinedIcon sx={{ fontSize: 19 }} />
         </IconButton>
-
-        <Box sx={{ position: 'absolute', bottom: PAD * 1.5, left: PAD * 1.5, right: PAD * 1.5 }}>
-          <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading}px`, mb: `${PAD * 0.75}px`, textShadow: '0 2px 8px rgba(0,0,0,.9)' }}>
+        {/* Photo credit: one quiet word; full attribution on the linked page + hover */}
+        {credit && (
+          <Box component="a" href={credit.url} target="_blank" rel="noopener noreferrer"
+            title={[credit.author, credit.source, credit.license].filter(Boolean).join(' \u00b7 ')}
+            aria-label={`Photo credit: ${[credit.author, credit.source, credit.license].filter(Boolean).join(', ')}`}
+            sx={{ position: 'absolute', right: PAD, bottom: PAD, px: '7px', height: 18, display: 'inline-flex', alignItems: 'center', borderRadius: '9px',
+              background: 'rgba(11,15,25,0.55)', color: 'rgba(248,250,252,0.85)', fontSize: '10px', fontWeight: 600, textDecoration: 'none' }}>
+            Photo: {creditWord}
+          </Box>
+        )}
+        <Box sx={{ position: 'absolute', bottom: PAD * 1.5, left: PAD * 2, right: PAD * 12 }}>
+          <Typography component="h1" sx={{ color: '#F8FAFC', fontWeight: 800, fontSize: `${T.heading + 4}px`, lineHeight: 1.15, mb: `${PAD}px`, textShadow: '0 2px 8px rgba(0,0,0,.6)' }}>
             {recipe.name}
           </Typography>
-          <Box sx={{ display: 'flex', gap: `${PAD}px`, flexWrap: 'wrap' }}>
-            <Chip icon={<Inventory2Icon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />} label={`${recipe.match}%`} size="small"
-              sx={{ background: matchBg[recipe.matchColor], color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 24, borderRadius: '12px', '& .MuiChip-label': { px: '6px' } }} />
-            <Chip icon={<AccessTimeIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />} label={recipe.time} size="small"
-              sx={{ background: 'rgba(245,166,35,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 24, borderRadius: '12px', '& .MuiChip-label': { px: '6px' } }} />
-            <Chip icon={<BoltIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />} label={recipe.kcal} size="small"
-              sx={{ background: 'rgba(55,71,79,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 24, borderRadius: '12px', '& .MuiChip-label': { px: '6px' } }} />
-            {recipe.maxServings != null && recipe.maxServings > 0 && (
-              <Chip icon={<RestaurantIcon sx={{ fontSize: '12px !important', color: '#fff !important', ml: '5px !important' }} />}
-                label={`Enough for ${recipe.maxServings}`} size="small"
-                sx={{ background: 'rgba(77,124,255,0.85)', color: '#fff', fontWeight: 700, fontSize: `${T.chip}px`, height: 24, borderRadius: '12px', '& .MuiChip-label': { px: '6px' } }} />
-            )}
+          <Box sx={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <HeroFact icon={<TimerOutlinedIcon sx={{ fontSize: 14 }} />}>{recipe.time}</HeroFact>
+            <HeroFact icon={<BoltIcon sx={{ fontSize: 14 }} />}>{recipe.kcal}</HeroFact>
+            {recipe.maxServings > 0 && <HeroFact icon={<RestaurantIcon sx={{ fontSize: 14 }} />}>Enough for {recipe.maxServings}</HeroFact>}
           </Box>
         </Box>
       </Box>
 
       {/* Body */}
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, '&::-webkit-scrollbar': { width: 3 }, '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.2)', borderRadius: 2 } }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pt: `${PAD * 2}px`, pb: `${PAD * 2}px`, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
         {recipe.description && (
-          <Typography sx={{ color: 'rgba(255,255,255,0.8)', fontSize: `${T.body}px`, lineHeight: 1.6, mb: `${PAD * 1.5}px` }}>
-            {recipe.description}
-          </Typography>
+          <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body + 1}px`, lineHeight: 1.6, mb: `${PAD * 2}px` }}>{recipe.description}</Typography>
         )}
 
-        <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: `${PAD * 1.5}px`, alignItems: 'flex-start' }}>
-          {/* Ingredients */}
-          <Box sx={{ width: TILE_W, flexShrink: 0 }}>
-            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title + 3}px`, mb: `${PAD}px` }}>Ingredients</Typography>
-            <Box sx={greenBox}>
-              {recipe.ingredients.map((ing, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: `${PAD}px`, mb: i < recipe.ingredients.length - 1 ? `${PAD * 1.25}px` : 0 }}>
-                  <Box sx={{ width: 20, height: 20, borderRadius: '5px', flexShrink: 0, mt: '1px', background: ing.have ? 'transparent' : '#c62828', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {ing.have ? <CheckIcon sx={{ color: '#66d19e', fontSize: 17 }} /> : <CloseIcon sx={{ color: '#fff', fontSize: 13 }} />}
+        {/* One checklist: what you have, what's missing (with inline restock) */}
+        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: `${PAD}px` }}>
+          <Typography component="h2" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.title + 4}px` }}>Ingredients</Typography>
+          {missing.length > 1 ? (
+            <Box component="button" type="button" onClick={() => addToCart(missing, 'all')} disabled={!!adding}
+              sx={{ all: 'unset', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--accent-text)', fontWeight: 700, fontSize: `${T.sub}px`,
+                '&:focus-visible': { outline: '2px solid var(--accent)', outlineOffset: 2 } }}>
+              <AddShoppingCartIcon sx={{ fontSize: 15 }} /> {adding === 'all' ? 'Adding\u2026' : `Restock all ${missing.length}`}
+            </Box>
+          ) : (
+            <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, fontWeight: 600 }}>{haveCount} of {recipe.ingredients.length} in your pantry</Typography>
+          )}
+        </Box>
+        <Box sx={{ ...surface, px: `${PAD * 1.5}px`, py: `${PAD * 0.5}px` }}>
+          {/* Every row: [circle] [name, bold] ........ [quantity / status] */}
+          <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0 }}>
+            {recipe.ingredients.map((ing, i) => {
+              const have = ing.have || ing.staple
+              const need = !have ? missingFor(ing) : null
+              const added = need && inCart.has(need.canonical)
+              const status = ing.staple ? 'Staple' : have ? 'In pantry' : added ? 'In cart' : 'Missing'
+              return (
+                <Box component="li" key={i} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD * 1.25}px`, py: `${PAD * 1.25}px`,
+                  borderBottom: i < recipe.ingredients.length - 1 ? '1px solid var(--surface-border)' : 'none' }}>
+                  <Box aria-hidden sx={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: have ? 'rgba(34,197,94,0.18)' : 'transparent', border: have ? 'none' : '2px solid rgba(var(--ink),0.25)' }}>
+                    {have && <CheckIcon sx={{ fontSize: 15, color: 'var(--success)' }} />}
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ color: '#eee', fontSize: `${T.body}px`, fontWeight: 600, lineHeight: 1.2 }}>{ing.display}</Typography>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px`, lineHeight: 1.3 }}>
-                      {ing.quantity} {ing.unit}{ing.staple ? ' · pantry staple' : ''}
-                    </Typography>
+                  <Typography sx={{ flex: 1, minWidth: 0, color: 'var(--fg)', fontSize: `${T.body + 2}px`, fontWeight: 700, lineHeight: 1.25 }}>{ing.display}</Typography>
+                  <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body + 1}px`, fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    {ing.quantity} {unitLabel(ing.unit)}
+                  </Typography>
+                  {/* Status, or Restock right on the missing row */}
+                  <Box sx={{ width: 96, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+                    {need && !added ? (
+                      <Button onClick={() => addToCart([need], need.canonical)} disabled={!!adding}
+                        startIcon={adding === need.canonical ? <CircularProgress size={13} sx={{ color: 'inherit' }} /> : <AddShoppingCartIcon sx={{ fontSize: '15px !important' }} />}
+                        aria-label={`Restock ${ing.display}: add ${need.needed} ${unitLabel(need.unit)} to cart`}
+                        sx={{ height: 32, minWidth: 0, px: '12px', borderRadius: '16px', textTransform: 'none', fontWeight: 700, fontSize: `${T.sub}px`, whiteSpace: 'nowrap',
+                          color: 'var(--accent-fg)', background: 'var(--accent)', '&:hover': { background: 'var(--accent-strong)' },
+                          '&.Mui-disabled': { background: 'rgba(var(--accent-rgb),0.4)', color: 'var(--accent-fg)' }, '& .MuiButton-startIcon': { mr: '4px' } }}>
+                        Restock
+                      </Button>
+                    ) : added ? (
+                      <Box component="button" type="button" onClick={onViewCart} aria-label={`${ing.display} is in your cart. View cart`}
+                        sx={{ all: 'unset', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--success)', fontWeight: 700, fontSize: `${T.sub}px`,
+                          '&:focus-visible': { outline: '2px solid var(--accent)', outlineOffset: 2 } }}>
+                        <CheckIcon sx={{ fontSize: 14 }} /> In cart
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontSize: `${T.sub}px`, fontWeight: 600, color: 'var(--text-2)' }}>{status}</Typography>
+                    )}
                   </Box>
                 </Box>
-              ))}
-            </Box>
+              )
+            })}
           </Box>
 
-          {/* Status / steps preview */}
-          <Box sx={{ width: TILE_W, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: `${PAD * 1.5}px` }}>
-            <Box>
-              <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title + 3}px`, mb: `${PAD}px` }}>
-                {missing.length ? `Missing ${missing.length}` : 'Ready to cook'}
-              </Typography>
-              <Box sx={greenBox}>
-                {missing.length === 0 ? (
-                  <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: `${T.body}px`, lineHeight: 1.6 }}>
-                    You have everything you need. This recipe supports about {recipe.maxServings ?? recipe.servings} serving{(recipe.maxServings ?? recipe.servings) === 1 ? '' : 's'} from your current pantry.
-                  </Typography>
-                ) : (
-                  missing.map((m, i) => (
-                    <Typography key={i} sx={{ color: 'rgba(255,255,255,0.85)', fontSize: `${T.body}px`, lineHeight: 1.8 }}>
-                      • {m.display} — need {m.needed} {m.unit}
-                    </Typography>
-                  ))
-                )}
-              </Box>
-            </Box>
-
-            <Box>
-              <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title + 3}px`, mb: `${PAD}px` }}>Steps</Typography>
-              <Box sx={greenBox}>
-                {recipe.steps.map((s, i) => (
-                  <Typography key={i} sx={{ color: 'rgba(255,255,255,0.8)', fontSize: `${T.body}px`, lineHeight: 1.7 }}>
-                    {i + 1}. {s.section}
-                  </Typography>
-                ))}
-              </Box>
-            </Box>
-          </Box>
         </Box>
-        <Box sx={{ height: `${PAD * 2}px` }} />
+        {err && <Typography role="alert" sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, mt: `${PAD}px` }}>{err}</Typography>}
+
+        {/* Short outline of the cooking steps */}
+        <Typography component="h2" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.title + 4}px`, mt: `${PAD * 3}px`, mb: `${PAD}px` }}>
+          {steps.length} steps
+        </Typography>
+        <Box component="ol" sx={{ ...surface, listStyle: 'none', m: 0, px: `${PAD * 1.5}px`, py: `${PAD}px` }}>
+          {steps.map((s, i) => (
+            <Box component="li" key={i} sx={{ display: 'flex', gap: `${PAD}px`, alignItems: 'center', py: `${PAD * 0.75}px` }}>
+              <Box aria-hidden sx={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, background: 'var(--surface-strong)', color: 'var(--text-2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>{i + 1}</Box>
+              <Typography sx={{ color: 'var(--fg)', fontSize: `${T.body + 1}px`, fontWeight: 500 }}>{s.section}</Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
-      {/* Bottom buttons */}
-      <Box sx={{ flexShrink: 0, display: 'flex', gap: `${PAD}px`, px: `${PAD * 1.5}px`, py: `${PAD * 1.5}px`, background: 'linear-gradient(to top, rgba(11,14,20,0.85) 55%, transparent)', backdropFilter: 'blur(6px)' }}>
-        {missing.length > 0 && (
-          <Button fullWidth onClick={addedCart ? onViewCart : handleAddToCart} disabled={addingCart}
-            startIcon={addingCart ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : null}
-            sx={{ ...glass('blue', { radius: 30, blur: 14, a: 0.28 }), color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(77,124,255,0.42)' } }}>
-            {addingCart ? 'Adding…' : addedCart ? 'View cart →' : `Add ${missing.length} to Cart`}
-          </Button>
-        )}
+      {/* One primary action */}
+      <Box sx={{ flexShrink: 0, px: `${PAD * 2}px`, pt: `${PAD}px`, pb: `${PAD * 1.5}px` }}>
         <Button fullWidth onClick={handleStart} disabled={starting}
-          startIcon={starting ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : null}
-          sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.34 }), color: '#fff', textTransform: 'none', fontWeight: 800, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(245,166,35,0.5)' } }}>
-          {starting ? 'Starting…' : 'Start cooking'}
+          startIcon={starting ? <CircularProgress size={18} sx={{ color: 'var(--accent-fg)' }} /> : null}
+          sx={ctaPrimary}>
+          {starting ? 'Starting\u2026' : 'Start cooking'}
         </Button>
       </Box>
     </Box>

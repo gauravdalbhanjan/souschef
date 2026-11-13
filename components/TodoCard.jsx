@@ -79,7 +79,7 @@ export default function TodoCard({ empty = false }) {
 
   const fieldSx = {
     '& .MuiOutlinedInput-root': {
-      color: '#fff',
+      color: 'var(--fg)',
       fontSize: '15px',
       '& fieldset': { borderColor: 'transparent' },
       '&:hover fieldset': { borderColor: '#333' },
@@ -105,13 +105,16 @@ export default function TodoCard({ empty = false }) {
           transition: 'filter 0.15s',
         }}
       >
-        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '19px', mb: 0.9 }}>
+        <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: '16px', mb: 0.75 }}>
           To Do List
         </Typography>
+        {savedItems.length === 0 && (
+          <Typography sx={{ color: 'var(--text-2)', fontSize: '12px', lineHeight: 1.45 }}>Tap to add tasks</Typography>
+        )}
         {savedItems.map((item, i) => (
           <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.45, flexWrap: 'wrap' }}>
-            <Typography sx={{ color: C.amber, fontSize: '13px', fontWeight: 700 }}>•</Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 500 }}>{item.text}</Typography>
+            <Typography sx={{ color: 'var(--accent-text)', fontSize: '13px', fontWeight: 700 }}>•</Typography>
+            <Typography sx={{ color: 'rgba(var(--ink),0.85)', fontSize: '12px', fontWeight: 500 }}>{item.text}</Typography>
             {item.time && (
               <Chip
                 icon={<AccessTimeIcon sx={{ fontSize: '11px !important', color: '#fff !important' }} />}
@@ -119,7 +122,7 @@ export default function TodoCard({ empty = false }) {
                 size="small"
                 sx={{
                   background: item.timeColor,
-                  color: '#fff',
+                  color: 'var(--fg)',
                   fontWeight: 700,
                   fontSize: '0.62rem',
                   height: 20,
@@ -141,7 +144,7 @@ export default function TodoCard({ empty = false }) {
           width: '100%',
           maxWidth: 648,
           maxHeight: '90dvh',
-          background: 'rgba(18,22,30,0.72)',
+          background: 'var(--paper)',
           backdropFilter: 'blur(34px) saturate(160%)',
           WebkitBackdropFilter: 'blur(34px) saturate(160%)',
           borderTop: `1px solid ${C.glassBorderStrong}`,
@@ -159,7 +162,7 @@ export default function TodoCard({ empty = false }) {
         }}>
           {/* Drag handle hint */}
           <Box sx={{ display: 'flex', justifyContent: 'center', pt: '10px', pb: '2px', flexShrink: 0 }}>
-            <Box sx={{ width: 40, height: 4, background: 'rgba(255,255,255,0.28)', borderRadius: 2 }} />
+            <Box sx={{ width: 40, height: 4, background: 'rgba(var(--ink),0.28)', borderRadius: 2 }} />
           </Box>
 
           {/* Header */}
@@ -167,7 +170,7 @@ export default function TodoCard({ empty = false }) {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             px: '20px', py: '12px', flexShrink: 0,
           }}>
-            <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '20px' }}>
+            <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: '20px' }}>
               To Do List
             </Typography>
             <IconButton onClick={closeEditor} sx={{ color: '#888' }}>
@@ -222,8 +225,8 @@ export default function TodoCard({ empty = false }) {
               sx={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 py: '14px', px: '4px', cursor: 'pointer',
-                color: '#666',
-                '&:hover': { color: C.amber },
+                color: 'var(--text-2)',
+                '&:hover': { color: 'var(--accent-text)' },
                 transition: 'color 0.15s',
               }}
             >
@@ -250,12 +253,12 @@ export default function TodoCard({ empty = false }) {
                 fullWidth
                 sx={{
                   ...glass('amber', { radius: 30, blur: 14, a: 0.32 }),
-                  color: '#fff',
+                  color: 'var(--fg)',
                   fontWeight: 800,
                   textTransform: 'none',
                   fontSize: '15px',
                   py: '10px',
-                  '&:hover': { background: 'rgba(245,166,35,0.45)' },
+                  '&:hover': { background: 'rgba(var(--accent-rgb),0.45)' },
                 }}
               >
                 Save
@@ -266,7 +269,7 @@ export default function TodoCard({ empty = false }) {
                 fullWidth
                 startIcon={<ShareIcon />}
                 sx={{
-                  color: '#fff',
+                  color: 'var(--fg)',
                   borderColor: '#444',
                   borderRadius: '30px',
                   textTransform: 'none',
@@ -305,7 +308,7 @@ export default function TodoCard({ empty = false }) {
                   >
                     {contact.initials}
                   </Avatar>
-                  <Typography sx={{ color: '#666', fontSize: '10px' }}>
+                  <Typography sx={{ color: 'var(--text-2)', fontSize: '10px' }}>
                     {contact.name}
                   </Typography>
                 </Box>
@@ -325,7 +328,7 @@ export default function TodoCard({ empty = false }) {
         sx={{
           '& .MuiSnackbarContent-root': {
             background: '#333',
-            color: '#fff',
+            color: 'var(--fg)',
             borderRadius: '12px',
             fontWeight: 600,
           },

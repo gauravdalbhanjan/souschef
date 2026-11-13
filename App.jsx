@@ -1,17 +1,19 @@
-import { useState, useEffect, useCallback, useReducer } from 'react'
+import { useState, useEffect, useCallback, useReducer, useMemo } from 'react'
 import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/material'
-import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
-import LogoutIcon from '@mui/icons-material/Logout'
-import { theme, C, glass, T, PAD } from './theme'
+import { Box, Typography, CircularProgress } from '@mui/material'
+import { makeTheme, C, T, PAD } from './theme'
+import { ColorModeContext, useColorModeState } from './lib/colorMode.js'
+import { useSkyAttribute } from './lib/ambience.js'
 import { api, setGuestMode } from './api'
 import { syncEventStock, clearMemoryPlans } from './lib/events.js'
+import { loadRoutines, clearMemoryRoutines } from './lib/routines.js'
+import { configureStaples, clearMemoryStaples } from './lib/staples.js'
 import { Snackbar } from '@mui/material'
 import { supabase } from './supabaseClient'
 import { useSession } from './useSession'
 
-import TimerCard      from './components/TimerCard'
-import TodoCard       from './components/TodoCard'
-import DailyTipsCard  from './components/DailyTipsCard'
+import ChefHome       from './components/ChefHome'
+import { AMBIENT_BG, AmbientBackground, ListeningOrb, CyclingStatus, softBackdrop } from './components/Ambient'
 import BottomNav      from './components/BottomNav'
 import RecipeDetail   from './components/RecipeDetail'
 import CookingMode    from './components/CookingMode'
@@ -21,11 +23,8 @@ import EventsPage     from './components/EventsPage'
 import SplashScreen   from './components/SplashScreen'
 import AuthPage       from './components/AuthPage'
 import AddGroceries   from './components/AddGroceries'
-import FoodTile       from './components/FoodTile'
 import CartPage       from './components/CartPage'
 import Onboarding     from './components/Onboarding'
-
-const GAP = PAD // 8px
 
 // Brief full-screen beat shown while suggestions are (re)computed after a scan
 // or onboarding, so the user never sees a broken/empty state or has to reload.
@@ -34,15 +33,12 @@ function CuratingOverlay({ show }) {
   return (
     <Box sx={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: `${PAD * 2}px`,
-      background: 'rgba(11,14,20,0.72)', backdropFilter: 'blur(14px)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: `${PAD}px`,
+      ...softBackdrop,
     }}>
-      <CircularProgress size={34} sx={{ color: C.amber }} />
-      <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, textAlign: 'center', px: 4 }}>
-        Hang in there…
-      </Typography>
-      <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center', px: 5, lineHeight: 1.5 }}>
-        We're curating your menu from what's in your pantry.
+      <ListeningOrb active size={104} />
+      <Typography component="div" sx={{ color: 'var(--fg)', fontSize: `${T.heading}px`, fontWeight: 800, textAlign: 'center', px: 4, mt: `${PAD}px` }}>
+        <CyclingStatus messages={['Stocking your digital kitchen\u2026', 'Finding what you can cook\u2026', 'Curating your menu\u2026']} />
       </Typography>
     </Box>
   )
@@ -51,131 +47,33 @@ function CuratingOverlay({ show }) {
 function FullSpinner() {
   return (
     <Box sx={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <CircularProgress size={30} sx={{ color: C.amber }} aria-label="Loading" />
+      <CircularProgress size={30} sx={{ color: 'var(--accent-text)' }} aria-label="Loading" />
     </Box>
   )
 }
 
-// ── Dashboard: 3 fixed top tiles + static match-ranked 3-per-row grid ───────
-function Dashboard({ suggestions, loading, pantryCount, loadError, userEmail, isGuest, onOpenRecipe, onAddGroceries, onSignOut }) {
-  const utilH = 132
-  const pantryEmpty = pantryCount === 0
-
+// Every screen sits on the same ambient gradient, so moving between tabs feels
+// like one continuous canvas.
+function Shell({ isMobile, children, navIndex, onNav, onCamera, hideNav = false }) {
   return (
     <Box sx={{
-      flex: 1, display: 'flex', flexDirection: 'column',
-      overflowY: 'auto', overflowX: 'hidden',
-      '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none',
-      pt: `${PAD}px`,
-    }}>
-      {/* Greeting header */}
-      <Box sx={{ px: `${PAD}px`, mb: `${PAD / 2}px`, flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: `${PAD}px` }}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.sub}px`, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {isGuest ? 'Guest session · nothing is saved' : (userEmail ? `Signed in as ${userEmail}` : 'Signed in')}
-          </Typography>
-          <Typography sx={{ color: '#fff', fontSize: `${T.heading}px`, fontWeight: 800, lineHeight: 1.15 }}>
-            What are we cooking?
-          </Typography>
-        </Box>
-        <IconButton onClick={onSignOut} aria-label={isGuest ? 'Exit guest session' : 'Sign out'} title={isGuest ? 'Exit guest session' : 'Sign out'}
-          sx={{ ...glass('neutral', { radius: 40, blur: 12, a: 0.08 }), color: 'rgba(255,255,255,0.8)', width: 38, height: 38, flexShrink: 0 }}>
-          <LogoutIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
-
-      {loadError && (
-        <Box role="alert" sx={{ mx: `${PAD}px`, mb: `${PAD}px`, p: `${PAD * 1.5}px`, ...glass('neutral', { radius: 14, blur: 14, a: 0.06 }), border: '1px solid rgba(255,138,138,0.5)' }}>
-          <Typography sx={{ color: '#ff8a8a', fontSize: `${T.sub}px`, fontWeight: 700, mb: '2px' }}>Database isn't ready</Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: `${T.sub}px`, lineHeight: 1.5 }}>
-            {loadError}
-          </Typography>
-        </Box>
-      )}
-
-      {/* Top row: 3 fixed tiles — Timer | ToDo | DailyTips (all visible, no scroll) */}
-      <Box sx={{ display: 'flex', gap: `${GAP}px`, px: `${PAD}px`, py: `${PAD / 2}px`, flexShrink: 0 }}>
-        <Box sx={{ flex: 1, height: utilH }}><TimerCard /></Box>
-        <Box sx={{ flex: 1, height: utilH }}><TodoCard empty={pantryEmpty} /></Box>
-        <Box sx={{ flex: 1, height: utilH }}><DailyTipsCard empty={pantryEmpty} /></Box>
-      </Box>
-
-      {/* Section label */}
-      <Box sx={{ px: `${PAD}px`, pt: `${PAD}px`, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexShrink: 0 }}>
-        <Typography sx={{ color: '#fff', fontSize: `${T.title}px`, fontWeight: 700 }}>
-          Ready to cook
-        </Typography>
-        <Typography sx={{ color: C.amber, fontSize: `${T.sub}px`, fontWeight: 600 }}>
-          best matches first
-        </Typography>
-      </Box>
-
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={26} sx={{ color: C.amber }} />
-        </Box>
-      ) : (pantryEmpty || suggestions.length === 0) ? (
-        // Empty pantry → a single "capacity 0 / 0%" window instead of a grid.
-        <Box sx={{ px: `${PAD}px`, pt: `${PAD}px`, pb: `${PAD}px` }}>
-          <Box
-            onClick={onAddGroceries}
-            sx={{
-              ...glass('amber', { radius: 20, blur: 20, a: 0.10 }),
-              cursor: 'pointer', p: `${PAD * 2.5}px`, textAlign: 'center',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: `${PAD}px`,
-              '&:hover': { filter: 'brightness(1.1)' }, transition: 'filter .15s',
-            }}
-          >
-            {/* 0% ring */}
-            <Box sx={{ position: 'relative', width: 96, height: 96, mb: `${PAD / 2}px` }}>
-              <CircularProgress variant="determinate" value={100} size={96} thickness={4}
-                sx={{ color: 'rgba(255,255,255,0.10)', position: 'absolute', inset: 0 }} />
-              <CircularProgress variant="determinate" value={0} size={96} thickness={4}
-                sx={{ color: C.amber, position: 'absolute', inset: 0 }} />
-              <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading}px`, lineHeight: 1 }}>0%</Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px', fontWeight: 600 }}>stocked</Typography>
-              </Box>
-            </Box>
-            <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.title}px` }}>
-              Pantry capacity: 0
-            </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: `${T.body}px`, lineHeight: 1.55, maxWidth: 340 }}>
-              0% of ingredients in your pantry. Add items to unlock ready-to-cook meals — tap here or the camera below to scan a receipt.
-            </Typography>
-          </Box>
-        </Box>
-      ) : (
-        // Static grid: 3 meal cards per row, ranked high -> low match
-        <Box sx={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: `${GAP}px`,
-          px: `${PAD}px`, pt: `${PAD}px`, pb: `${PAD}px`,
-        }}>
-          {suggestions.map(dish => (
-            <Box key={dish.slug} sx={{ height: 132 }}>
-              <FoodTile item={dish} height={132} onClick={() => onOpenRecipe(dish)} compact />
-            </Box>
-          ))}
-        </Box>
-      )}
-      <Box sx={{ height: `${PAD}px`, flexShrink: 0 }} />
-    </Box>
-  )
-}
-
-function Shell({ isMobile, children, navIndex, onNav, onCamera }) {
-  return (
-    <Box sx={{
-      width: isMobile ? '100vw' : 648, mx: 'auto',
-      background: isMobile ? 'transparent' : C.shellBg,
-      backdropFilter: isMobile ? 'none' : 'blur(30px) saturate(150%)',
-      WebkitBackdropFilter: isMobile ? 'none' : 'blur(30px) saturate(150%)',
+      width: '100%', maxWidth: isMobile ? 'none' : 648, mx: 'auto',
+      background: AMBIENT_BG,
       borderLeft: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
       borderRight: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
-      height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      // 100svh = the visible height even with the browser toolbars showing, so
+      // nothing (the tab bar especially) is ever pushed below the fold.
+      height: '100vh',
+      '@supports (height: 100svh)': { height: '100svh' },
+      display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative',
+      pt: 'env(safe-area-inset-top, 0px)', // clear the notch / status bar
     }}>
-      {children}
-      <BottomNav active={navIndex} onChange={onNav} onCamera={onCamera} />
+      {/* Same celestial glow + weather diffusion behind every route. */}
+      <AmbientBackground />
+      <Box sx={{ position: 'relative', zIndex: 1, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {children}
+        {!hideNav && <BottomNav active={navIndex} onChange={onNav} onCamera={onCamera} />}
+      </Box>
     </Box>
   )
 }
@@ -190,10 +88,13 @@ function InnerApp() {
   const [loading, setLoading]   = useState(true)
   const [activeSlug, setActiveSlug]   = useState(null)
   const [cookSession, setCookSession] = useState(null)
-  const [addOpen, setAddOpen]   = useState(false)
+  const [addOpen, setAddOpenState] = useState(false)
+  const [addPrefill, setAddPrefill] = useState('') // "I bought …" text from Ask Chef
+  const setAddOpen = (open, prefill = '') => { setAddPrefill(open ? prefill : ''); setAddOpenState(open) }
   const [prevPage, setPrevPage] = useState('home')
   const [curating, setCurating] = useState(false)
   const [pantryCount, setPantryCount] = useState(0)
+  const [pantryItems, setPantryItems] = useState([])
   const [loadError, setLoadError] = useState('')
   const [, bumpOnboarding] = useReducer(x => x + 1, 0)
 
@@ -217,6 +118,7 @@ function InnerApp() {
       const [s, items] = await Promise.all([api.suggestions(), api.pantry()])
       setSuggestions(s)
       setPantryCount(items.length)
+      setPantryItems(items)
       // An existing user on a new device already has a pantry: skip onboarding.
       if (items.length > 0 && onboardKey) {
         try { localStorage.setItem(onboardKey, '1') } catch { /* ignore */ }
@@ -236,13 +138,21 @@ function InnerApp() {
     if (active) {
       refreshSuggestions()
     } else {
-      setSuggestions([]); setPantryCount(0); setLoadError(''); setLoading(true)
+      setSuggestions([]); setPantryCount(0); setPantryItems([]); setLoadError(''); setLoading(true)
       setPage(p => (p === 'splash' ? p : 'home')); setNavIndex(0)
     }
   }, [active, uid, refreshSuggestions])
 
   // Event plans: per account on this device; guests keep them in memory only.
   const planKey = uid && !guest ? `souschef_events_${uid}` : null
+  // Routines: per account on this device; guests keep them in memory only.
+  const routineKey = uid && !guest ? `souschef_routines_${uid}` : null
+  // Staples you're out of: same per-account / guest-memory rule. Set before any
+  // data call below so suggestions use the right list.
+  configureStaples(uid && !guest ? `souschef_staples_out_${uid}` : null)
+  const [routineVersion, setRoutineVersion] = useState(0)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const routines = useMemo(() => loadRoutines(routineKey), [routineKey, routineVersion, guest])
   const [eventNotice, setEventNotice] = useState('')
   const onHome = page === 'home'
 
@@ -272,6 +182,8 @@ function InnerApp() {
     if (guest) {
       setGuestMode(false)       // discards everything the guest added
       clearMemoryPlans()
+      clearMemoryRoutines()
+      clearMemoryStaples()
       setGuest(false)
       return
     }
@@ -279,7 +191,43 @@ function InnerApp() {
   }
   const goHome = useCallback(() => setPage('home'), [])
 
+  // ── Back navigation ───────────────────────────────────────────────────────
+  // Every in-app screen change is a browser history entry, so the top-left
+  // Back button, Android back and iOS swipe-back all return to the previous
+  // screen (e.g. All recipes -> recipe -> back lands on All recipes again).
+  useEffect(() => {
+    const onPop = (e) => {
+      const p = e.state?.page
+      if (!p) return
+      setPage(p)
+      const tab = ['home', 'inventory', 'routine', 'events'].indexOf(p)
+      if (tab >= 0) setNavIndex(tab)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  useEffect(() => {
+    if (page === 'splash') return
+    const s = window.history.state
+    if (s?.page === page) return
+    const entry = { page, idx: s?.page ? (s.idx ?? 0) + 1 : 0 }
+    if (s?.page) window.history.pushState(entry, '')
+    else window.history.replaceState(entry, '')
+  }, [page])
+  // In-app Back: step back through history when there is somewhere to go.
+  const goBack = (fallback) => {
+    if ((window.history.state?.idx ?? 0) > 0) window.history.back()
+    else setPage(fallback)
+  }
+
+  // Menu (tab 0) always lands on the home landing page: clear the remembered
+  // "All recipes" view and remount ChefHome (fresh hero, no old answer).
+  const [homeNonce, setHomeNonce] = useState(0)
   const handleNav = (i) => {
+    if (i === 0) {
+      try { sessionStorage.removeItem('souschef_browse') } catch { /* ignore */ }
+      setHomeNonce(n => n + 1)
+    }
     setNavIndex(i)
     setPage(['home', 'inventory', 'routine', 'events'][i])
   }
@@ -317,7 +265,7 @@ function InnerApp() {
       <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         <RecipeDetail
           slug={activeSlug}
-          onBack={() => setPage('home')}
+          onBack={() => goBack('home')}
           onStart={(session) => { setCookSession(session); setPage('cooking') }}
           onViewCart={openCart}
         />
@@ -329,11 +277,13 @@ function InnerApp() {
 
   if (page === 'cooking') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+      // Focus mode: no tab bar while cooking (exit with the back button).
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)} hideNav>
         <CookingMode
           slug={activeSlug}
           session={cookSession}
-          onBack={() => setPage('recipe')}
+          onBack={() => goBack('recipe')}
+          onHome={() => handleNav(0)}
           onFinished={() => refreshSuggestions()}
         />
         <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
@@ -345,7 +295,7 @@ function InnerApp() {
   if (page === 'cart') {
     return (
       <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
-        <CartPage onBack={() => setPage(prevPage)} />
+        <CartPage onBack={() => goBack(prevPage)} />
         <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
         <CuratingOverlay show={curating} />
       </Shell>
@@ -356,25 +306,30 @@ function InnerApp() {
     <>
       <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         {page === 'home' && (
-          <Dashboard
+          <ChefHome
+            key={homeNonce}
             suggestions={suggestions}
             loading={loading}
             pantryCount={pantryCount}
+            pantryItems={pantryItems}
+            routines={routines}
+            onOpenRoutine={(r) => (r.recipeSlug ? openRecipe({ slug: r.recipeSlug }) : handleNav(2))}
             loadError={loadError}
             userEmail={guest ? '' : (session?.user?.email || '')}
             isGuest={guest}
             onOpenRecipe={openRecipe}
-            onAddGroceries={() => setAddOpen(true)}
+            onAddGroceries={(prefill) => setAddOpen(true, prefill || '')}
             onSignOut={signOut}
           />
         )}
-        {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} />}
-        {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} />}
+        {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} routineKey={routineKey} onStaplesChanged={() => refreshSuggestions()} />}
+        {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} routineKey={routineKey} onChanged={() => setRoutineVersion(v => v + 1)} />}
         {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} planKey={planKey} />}
       </Shell>
 
       <AddGroceries
         open={addOpen}
+        prefill={addPrefill}
         onClose={() => setAddOpen(false)}
         onCommitted={handleCommitted}
       />
@@ -387,10 +342,15 @@ function InnerApp() {
 }
 
 export default function App() {
+  const colorMode = useColorModeState()
+  useSkyAttribute() // page glow: gold by day, silver by night
+  const muiTheme = useMemo(() => makeTheme(colorMode.mode), [colorMode.mode])
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <InnerApp />
-    </ThemeProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        <InnerApp />
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   )
 }

@@ -7,34 +7,35 @@ import { createTheme } from '@mui/material/styles'
 export const C = {
   // legacy names (kept so existing components keep working)
   bg:        'transparent',
-  card:      'rgba(255,255,255,0.06)',
-  amber:     '#f5a623',
-  amberDark: '#e8960e',
-  orange:    '#f5a623',
+  card:      'rgba(var(--ink),0.06)',
+  // Mirrors --accent in theme.css (MUI palette needs literal colours).
+  amber:     '#F59E0B',
+  amberDark: '#D97706',
+  orange:    '#F59E0B',
   red:       '#ff5f6d',
   green:     '#2e9e6b',
   greenBg:   'rgba(46,158,107,0.14)',
   textPri:   '#ffffff',
-  textSec:   'rgba(255,255,255,0.62)',
-  topCard:   '#f5a623',
+  textSec:   'var(--text-2)',
+  topCard:   '#F59E0B',
   topCardText: '#1a1000',
 
   // glass palette
-  glassBg:      'rgba(255,255,255,0.07)',
-  glassBgSoft:  'rgba(255,255,255,0.045)',
-  glassBorder:  'rgba(255,255,255,0.14)',
-  glassBorderStrong: 'rgba(255,255,255,0.24)',
-  shellBg:      'rgba(14,18,26,0.35)',
+  glassBg:      'rgba(var(--ink),0.07)',
+  glassBgSoft:  'rgba(var(--ink),0.045)',
+  glassBorder:  'var(--surface-border)',
+  glassBorderStrong: 'rgba(var(--ink),0.24)',
+  shellBg:      'var(--paper)',
 
   // amber liquid-glass (for accent tiles like Timer / To-Do)
-  amberGlass:   'rgba(245,166,35,0.22)',
-  amberGlassBorder: 'rgba(245,166,35,0.55)',
+  amberGlass:   'rgba(var(--accent-rgb),0.22)',
+  amberGlassBorder: 'rgba(var(--accent-rgb),0.55)',
   amberText:    '#ffd98a',
 
   // accents
   blue:      '#4d7cff',
   blueDark:  '#3a63d8',
-  textFaint: 'rgba(255,255,255,0.42)',
+  textFaint: 'var(--text-3)',
 }
 
 // Frosted glass surface generator.
@@ -42,18 +43,18 @@ export const C = {
 //  a:    fill alpha override (optional)
 export function glass(tint = 'neutral', { radius = 20, blur = 22, a } = {}) {
   const fills = {
-    neutral: `rgba(255,255,255,${a ?? 0.07})`,
-    amber:   `rgba(245,166,35,${a ?? 0.2})`,
+    neutral: a != null ? `rgba(var(--ink),${a})` : 'var(--surface)',
+    amber:   `rgba(var(--accent-rgb),${a ?? 0.2})`,
     green:   `rgba(46,158,107,${a ?? 0.16})`,
     blue:    `rgba(77,124,255,${a ?? 0.22})`,
-    dark:    `rgba(14,18,26,${a ?? 0.55})`,
+    dark:    `rgba(var(--deep),${a ?? 0.55})`,
   }
   const borders = {
-    neutral: 'rgba(255,255,255,0.14)',
-    amber:   'rgba(245,166,35,0.5)',
+    neutral: 'var(--surface-border)',
+    amber:   'rgba(var(--accent-rgb),0.5)',
     green:   'rgba(46,158,107,0.42)',
     blue:    'rgba(77,124,255,0.5)',
-    dark:    'rgba(255,255,255,0.1)',
+    dark:    'var(--surface-border)',
   }
   return {
     background: fills[tint] || fills.neutral,
@@ -61,7 +62,7 @@ export function glass(tint = 'neutral', { radius = 20, blur = 22, a } = {}) {
     WebkitBackdropFilter: `blur(${blur}px) saturate(160%)`,
     border: `1px solid ${borders[tint] || borders.neutral}`,
     borderRadius: `${radius}px`,
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 30px rgba(0,0,0,0.35)',
+    boxShadow: 'var(--shadow)',
   }
 }
 
@@ -82,28 +83,33 @@ export const PAD = 8 // global 8px padding unit
 // Shared glass text-field styling for MUI TextField
 export const glassField = {
   '& .MuiOutlinedInput-root': {
-    background: 'rgba(255,255,255,0.06)',
+    background: 'rgba(var(--ink),0.06)',
     backdropFilter: 'blur(12px)',
     borderRadius: '14px',
-    color: '#fff',
-    '& fieldset': { borderColor: 'rgba(255,255,255,0.14)' },
-    '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.3)' },
+    color: 'var(--fg)',
+    '& fieldset': { borderColor: 'rgba(var(--ink),0.14)' },
+    '&:hover fieldset': { borderColor: 'rgba(var(--ink),0.3)' },
     '&.Mui-focused fieldset': { borderColor: C.amber },
   },
-  '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.5)' },
+  '& .MuiInputLabel-root': { color: 'var(--text-2)' },
   '& .MuiInputLabel-root.Mui-focused': { color: C.amber },
 }
 
-export const theme = createTheme({
-  palette: {
+// Palette values must be real colours (MUI runs alpha()/emphasize() on them),
+// so they're concrete per mode; component styles use the CSS tokens instead.
+export const makeTheme = (mode = 'dark') => createTheme({
+  palette: mode === 'light' ? {
+    mode: 'light',
+    background: { default: '#F1F4F9', paper: '#ffffff' },
+    primary: { main: '#D97706' },
+    secondary: { main: '#4F46E5' },
+    text: { primary: '#0F172A', secondary: '#475569' },
+  } : {
     mode: 'dark',
-    // Must be a real color: MUI derives colors from it (e.g. Snackbar runs
-    // emphasize() on it) and throws on 'transparent'. Matches the base color
-    // under the fluid gradient in index.css, so nothing changes visually.
-    background: { default: '#0b0e14', paper: 'rgba(255,255,255,0.07)' },
-    primary: { main: '#f5a623' },
-    secondary: { main: '#4d7cff' },
-    text: { primary: '#ffffff', secondary: 'rgba(255,255,255,0.62)' },
+    background: { default: '#0B0F19', paper: '#111623' },
+    primary: { main: '#F59E0B' },
+    secondary: { main: '#6366F1' },
+    text: { primary: '#F8FAFC', secondary: '#CBD5E1' },
   },
   typography: { fontFamily: "'Montserrat', sans-serif", fontWeightRegular: 400 },
   shape: { borderRadius: 18 },
@@ -114,13 +120,18 @@ export const theme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          background: 'rgba(20,24,32,0.85)',
+          background: 'var(--paper)',
+          color: 'var(--fg)',           // was MUI's default white: invisible on light paper
           backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.12)',
+          border: '1px solid rgba(var(--ink),0.12)',
+          boxShadow: 'var(--shadow)',
           fontSize: '12px',
+          fontWeight: 600,
         },
-        arrow: { color: 'rgba(20,24,32,0.85)' },
+        arrow: { color: 'var(--paper)' },
       },
     },
   },
 })
+
+export const theme = makeTheme('dark')

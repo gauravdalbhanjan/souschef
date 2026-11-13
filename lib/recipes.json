@@ -9,52 +9,173 @@
     "source": "recipe-dataset",
     "description": "A classic: crisp romaine, parmesan, croutons and a creamy dressing.",
     "ingredients": [
-      { "display": "Romaine Lettuce", "quantity": 1, "unit": "head" },
-      { "display": "Parmesan", "quantity": 40, "unit": "g" },
-      { "display": "Croutons", "quantity": 1, "unit": "cup" },
-      { "display": "Mayonnaise", "quantity": 2, "unit": "tbsp" },
-      { "display": "Dijon Mustard", "quantity": 1, "unit": "tsp" },
-      { "display": "Worcestershire", "quantity": 1, "unit": "tsp" },
-      { "display": "Garlic", "quantity": 1, "unit": "clove" },
-      { "display": "Lemon", "quantity": 0.5, "unit": "unit" },
-      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Romaine Lettuce",
+        "quantity": 1,
+        "unit": "head"
+      },
+      {
+        "display": "Parmesan",
+        "quantity": 40,
+        "unit": "g"
+      },
+      {
+        "display": "Croutons",
+        "quantity": 1,
+        "unit": "cup"
+      },
+      {
+        "display": "Mayonnaise",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "display": "Dijon Mustard",
+        "quantity": 1,
+        "unit": "tsp"
+      },
+      {
+        "display": "Worcestershire",
+        "quantity": 1,
+        "unit": "tsp"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 1,
+        "unit": "clove"
+      },
+      {
+        "display": "Lemon",
+        "quantity": 0.5,
+        "unit": "unit"
+      },
+      {
+        "display": "Black Pepper",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9"
+    },
+    "categories": [
+      "Salad",
+      "Lunch"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 10
   },
   {
     "slug": "aglio-olio-spaghetti",
     "name": "Aglio e Olio Spaghetti",
-    "image": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Spaghetti_aglio_e_olio_KB.jpg/960px-Spaghetti_aglio_e_olio_KB.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 12,
     "kcal": 550,
     "servings": 2,
     "source": "json-cookbook",
     "description": "Garlic, olive oil, chili and pasta. Five ingredients, big flavor.",
     "ingredients": [
-      { "display": "Spaghetti", "quantity": 200, "unit": "g" },
-      { "display": "Garlic", "quantity": 4, "unit": "clove" },
-      { "display": "Olive Oil", "quantity": 3, "unit": "tbsp", "staple": true },
-      { "display": "Chili", "quantity": 1, "unit": "unit" },
-      { "display": "Parmesan", "quantity": 30, "unit": "g" },
-      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Spaghetti",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 4,
+        "unit": "clove"
+      },
+      {
+        "display": "Olive Oil",
+        "quantity": 3,
+        "unit": "tbsp",
+        "staple": true
+      },
+      {
+        "display": "Chili",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Parmesan",
+        "quantity": 30,
+        "unit": "g"
+      },
+      {
+        "display": "Salt",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Bairuilong",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Spaghetti_aglio_e_olio_KB.jpg"
+    },
+    "categories": [
+      "Pasta",
+      "Mains"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 14
   },
   {
     "slug": "caesar-wrap",
     "name": "Caesar Wrap",
-    "image": "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Crispy_Chick%27n_Caesar_Wrap.jpg/960px-Crispy_Chick%27n_Caesar_Wrap.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 10,
     "kcal": 380,
     "servings": 2,
     "source": "recipe-dataset",
     "description": "Caesar salad rolled into a soft tortilla with grilled chicken.",
     "ingredients": [
-      { "display": "Tortillas", "quantity": 2, "unit": "unit" },
-      { "display": "Chicken Breast", "quantity": 200, "unit": "g" },
-      { "display": "Romaine Lettuce", "quantity": 0.5, "unit": "head" },
-      { "display": "Parmesan", "quantity": 20, "unit": "g" },
-      { "display": "Mayonnaise", "quantity": 2, "unit": "tbsp" },
-      { "display": "Garlic", "quantity": 1, "unit": "clove" }
-    ]
+      {
+        "display": "Tortillas",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Chicken Breast",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Romaine Lettuce",
+        "quantity": 0.5,
+        "unit": "head"
+      },
+      {
+        "display": "Parmesan",
+        "quantity": 20,
+        "unit": "g"
+      },
+      {
+        "display": "Mayonnaise",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 1,
+        "unit": "clove"
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Mx. Granger",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Crispy_Chick%27n_Caesar_Wrap.jpg"
+    },
+    "categories": [
+      "Lunch"
+    ],
+    "protein": "Chicken",
+    "proteinG": 32
   },
   {
     "slug": "bacon-ham-sandwich",
@@ -66,136 +187,420 @@
     "source": "json-cookbook",
     "description": "Toasted bread, crispy bacon, cheese and a fried egg.",
     "ingredients": [
-      { "display": "Bread", "quantity": 2, "unit": "slice" },
-      { "display": "Bacon", "quantity": 3, "unit": "slice" },
-      { "display": "Cheese", "quantity": 30, "unit": "g" },
-      { "display": "Egg", "quantity": 1, "unit": "unit" },
-      { "display": "Butter", "quantity": 1, "unit": "tbsp" }
-    ]
+      {
+        "display": "Bread",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "display": "Bacon",
+        "quantity": 3,
+        "unit": "slice"
+      },
+      {
+        "display": "Cheese",
+        "quantity": 30,
+        "unit": "g"
+      },
+      {
+        "display": "Egg",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Butter",
+        "quantity": 1,
+        "unit": "tbsp"
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af"
+    },
+    "categories": [
+      "Breakfast",
+      "Lunch"
+    ],
+    "protein": "Meat",
+    "proteinG": 30
   },
   {
     "slug": "guacamole",
     "name": "Guacamole",
-    "image": "https://images.unsplash.com/photo-1600335895229-6e75511892c8?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Doritos_and_Guacamole_in_a_wooden_bowl.JPG/960px-Doritos_and_Guacamole_in_a_wooden_bowl.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 7,
     "kcal": 300,
     "servings": 3,
     "source": "recipe-dataset",
     "description": "Ripe avocado mashed with lime, onion, cilantro and chili.",
     "ingredients": [
-      { "display": "Avocado", "quantity": 2, "unit": "unit" },
-      { "display": "Lime", "quantity": 1, "unit": "unit" },
-      { "display": "Onion", "quantity": 0.5, "unit": "unit" },
-      { "display": "Cilantro", "quantity": 1, "unit": "bunch" },
-      { "display": "Chili", "quantity": 1, "unit": "unit" },
-      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Avocado",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Lime",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Onion",
+        "quantity": 0.5,
+        "unit": "unit"
+      },
+      {
+        "display": "Cilantro",
+        "quantity": 1,
+        "unit": "bunch"
+      },
+      {
+        "display": "Chili",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Salt",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "domdomegg",
+      "license": "CC BY 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Doritos_and_Guacamole_in_a_wooden_bowl.JPG"
+    },
+    "categories": [
+      "Snack"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 3
   },
   {
     "slug": "chicken-nuggets",
     "name": "Chicken Nuggets",
-    "image": "https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Impossible_chicken_nuggets_1.jpg/960px-Impossible_chicken_nuggets_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 20,
     "kcal": 420,
     "servings": 2,
     "source": "recipe-dataset",
     "description": "Crispy breaded chicken bites, oven-baked or air-fried.",
     "ingredients": [
-      { "display": "Chicken Breast", "quantity": 300, "unit": "g" },
-      { "display": "Flour", "quantity": 100, "unit": "g", "staple": true },
-      { "display": "Egg", "quantity": 1, "unit": "unit" },
-      { "display": "Bread", "quantity": 2, "unit": "slice" },
-      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true },
-      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Chicken Breast",
+        "quantity": 300,
+        "unit": "g"
+      },
+      {
+        "display": "Flour",
+        "quantity": 100,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Egg",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Bread",
+        "quantity": 2,
+        "unit": "slice"
+      },
+      {
+        "display": "Salt",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      },
+      {
+        "display": "Black Pepper",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Mx. Granger",
+      "license": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Impossible_chicken_nuggets_1.jpg"
+    },
+    "categories": [
+      "Snack",
+      "Mains"
+    ],
+    "protein": "Chicken",
+    "proteinG": 28
   },
   {
     "slug": "chicken-strips",
     "name": "Chicken Strips",
-    "image": "https://images.unsplash.com/photo-1587241321921-91a834d6d191?w=600&q=80",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/2/21/Crispy_Chicken_Strips_-_FotoosVanRobin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
     "time_mins": 15,
     "kcal": 500,
     "servings": 2,
     "source": "recipe-dataset",
     "description": "Golden chicken tenders with a seasoned crumb.",
     "ingredients": [
-      { "display": "Chicken Breast", "quantity": 350, "unit": "g" },
-      { "display": "Flour", "quantity": 80, "unit": "g", "staple": true },
-      { "display": "Egg", "quantity": 1, "unit": "unit" },
-      { "display": "Paprika", "quantity": 1, "unit": "tsp", "staple": true },
-      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
-    ]
+      {
+        "display": "Chicken Breast",
+        "quantity": 350,
+        "unit": "g"
+      },
+      {
+        "display": "Flour",
+        "quantity": 80,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Egg",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Paprika",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      },
+      {
+        "display": "Oil",
+        "quantity": 2,
+        "unit": "tbsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "FotoosVanRobin from Netherlands",
+      "license": "CC BY-SA 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Crispy_Chicken_Strips_-_FotoosVanRobin.jpg"
+    },
+    "categories": [
+      "Mains"
+    ],
+    "protein": "Chicken",
+    "proteinG": 35
   },
   {
     "slug": "chicken-fries",
     "name": "Chicken Fries",
-    "image": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Burger_King_Chicken_Fries_%2815423233325%29.jpg/960px-Burger_King_Chicken_Fries_%2815423233325%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 18,
     "kcal": 450,
     "servings": 2,
     "source": "json-cookbook",
     "description": "Chicken fries with a side of crispy potato fries.",
     "ingredients": [
-      { "display": "Chicken Breast", "quantity": 250, "unit": "g" },
-      { "display": "Potato", "quantity": 3, "unit": "unit" },
-      { "display": "Flour", "quantity": 60, "unit": "g", "staple": true },
-      { "display": "Oil", "quantity": 3, "unit": "tbsp", "staple": true },
-      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Chicken Breast",
+        "quantity": 250,
+        "unit": "g"
+      },
+      {
+        "display": "Potato",
+        "quantity": 3,
+        "unit": "unit"
+      },
+      {
+        "display": "Flour",
+        "quantity": 60,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Oil",
+        "quantity": 3,
+        "unit": "tbsp",
+        "staple": true
+      },
+      {
+        "display": "Salt",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Willis Lam",
+      "license": "CC BY-SA 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Burger_King_Chicken_Fries_(15423233325).jpg"
+    },
+    "categories": [
+      "Mains"
+    ],
+    "protein": "Chicken",
+    "proteinG": 30
   },
   {
     "slug": "bundt-cake",
     "name": "Bundt Cake",
-    "image": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/eb/Bundt_Cake_with_Grapes_003.jpg/960px-Bundt_Cake_with_Grapes_003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 60,
     "kcal": 350,
     "servings": 8,
     "source": "json-cookbook",
     "description": "A tender ring cake with a golden buttery crumb.",
     "ingredients": [
-      { "display": "Flour", "quantity": 300, "unit": "g", "staple": true },
-      { "display": "Sugar", "quantity": 250, "unit": "g", "staple": true },
-      { "display": "Butter", "quantity": 200, "unit": "g" },
-      { "display": "Egg", "quantity": 4, "unit": "unit" },
-      { "display": "Milk", "quantity": 200, "unit": "ml" },
-      { "display": "Lemon", "quantity": 1, "unit": "unit" }
-    ]
+      {
+        "display": "Flour",
+        "quantity": 300,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Sugar",
+        "quantity": 250,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Butter",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Egg",
+        "quantity": 4,
+        "unit": "unit"
+      },
+      {
+        "display": "Milk",
+        "quantity": 200,
+        "unit": "ml"
+      },
+      {
+        "display": "Lemon",
+        "quantity": 1,
+        "unit": "unit"
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Katrin Morenz",
+      "license": "CC BY-SA 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Bundt_Cake_with_Grapes_003.jpg"
+    },
+    "categories": [
+      "Dessert"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 6
   },
   {
     "slug": "tomato-spinach-pasta",
     "name": "Tomato Spinach Pasta",
-    "image": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Red_Whole_Wheat_Penne_%283357621684%29.jpg/960px-Red_Whole_Wheat_Penne_%283357621684%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 18,
     "kcal": 480,
     "servings": 2,
     "source": "tandoor",
     "description": "Penne tossed with garlicky tomato sauce and wilted spinach.",
     "ingredients": [
-      { "display": "Penne Pasta", "quantity": 200, "unit": "g" },
-      { "display": "Tomato", "quantity": 3, "unit": "unit" },
-      { "display": "Spinach", "quantity": 100, "unit": "g" },
-      { "display": "Garlic", "quantity": 2, "unit": "clove" },
-      { "display": "Olive Oil", "quantity": 2, "unit": "tbsp", "staple": true },
-      { "display": "Parmesan", "quantity": 30, "unit": "g" }
-    ]
+      {
+        "display": "Penne Pasta",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Tomato",
+        "quantity": 3,
+        "unit": "unit"
+      },
+      {
+        "display": "Spinach",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 2,
+        "unit": "clove"
+      },
+      {
+        "display": "Olive Oil",
+        "quantity": 2,
+        "unit": "tbsp",
+        "staple": true
+      },
+      {
+        "display": "Parmesan",
+        "quantity": 30,
+        "unit": "g"
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Karen and Brad Emerson",
+      "license": "CC BY 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Red_Whole_Wheat_Penne_(3357621684).jpg"
+    },
+    "categories": [
+      "Pasta",
+      "Mains"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 16
   },
   {
     "slug": "veggie-omelette",
     "name": "Veggie Omelette",
-    "image": "https://images.unsplash.com/photo-1510693206972-df098062cb71?w=600&q=80",
+    "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/2026-05-10_08_16_25_Omelette_%28with_cheddar%2C_ham%2C_yellow_onions%2C_green_peppers%2C_mushrooms%2C_tomatoes%29%2C_home_fried_potatoes_and_turkey_sausage_patty_at_Capital_Health_Medical_Center_-_Hopewell_in_Hopewell%2C_New_Jersey.jpg/960px-thumbnail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     "time_mins": 8,
     "kcal": 260,
     "servings": 1,
     "source": "tandoor",
     "description": "Fluffy eggs folded over sauteed peppers, onion and cheese.",
     "ingredients": [
-      { "display": "Egg", "quantity": 3, "unit": "unit" },
-      { "display": "Bell Pepper", "quantity": 0.5, "unit": "unit" },
-      { "display": "Onion", "quantity": 0.25, "unit": "unit" },
-      { "display": "Cheese", "quantity": 30, "unit": "g" },
-      { "display": "Butter", "quantity": 1, "unit": "tbsp" },
-      { "display": "Salt", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Egg",
+        "quantity": 3,
+        "unit": "unit"
+      },
+      {
+        "display": "Bell Pepper",
+        "quantity": 0.5,
+        "unit": "unit"
+      },
+      {
+        "display": "Onion",
+        "quantity": 0.25,
+        "unit": "unit"
+      },
+      {
+        "display": "Cheese",
+        "quantity": 30,
+        "unit": "g"
+      },
+      {
+        "display": "Butter",
+        "quantity": 1,
+        "unit": "tbsp"
+      },
+      {
+        "display": "Salt",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Wikimedia Commons",
+      "author": "Famartin",
+      "license": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:2026-05-10_08_16_25_Omelette_(with_cheddar,_ham,_yellow_onions,_green_peppers,_mushrooms,_tomatoes),_home_fried_potatoes_and_turkey_sausage_patty_at_Capital_Health_Medical_Center_-_Hopewell_in_Hopewell,_New_Jersey.jpg"
+    },
+    "categories": [
+      "Breakfast"
+    ],
+    "protein": "Eggs",
+    "proteinG": 22
   },
   {
     "slug": "garlic-butter-salmon",
@@ -207,12 +612,43 @@
     "source": "recipe-dataset",
     "description": "Pan-seared salmon in a lemony garlic butter.",
     "ingredients": [
-      { "display": "Salmon", "quantity": 2, "unit": "unit" },
-      { "display": "Butter", "quantity": 2, "unit": "tbsp" },
-      { "display": "Garlic", "quantity": 3, "unit": "clove" },
-      { "display": "Lemon", "quantity": 1, "unit": "unit" },
-      { "display": "Black Pepper", "quantity": 1, "unit": "tsp", "staple": true }
-    ]
+      {
+        "display": "Salmon",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Butter",
+        "quantity": 2,
+        "unit": "tbsp"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 3,
+        "unit": "clove"
+      },
+      {
+        "display": "Lemon",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Black Pepper",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288"
+    },
+    "categories": [
+      "Mains"
+    ],
+    "protein": "Seafood",
+    "proteinG": 34
   },
   {
     "slug": "chickpea-curry",
@@ -224,14 +660,54 @@
     "source": "tandoor",
     "description": "Chickpeas simmered in a spiced tomato and onion gravy.",
     "ingredients": [
-      { "display": "Chickpeas", "quantity": 2, "unit": "can" },
-      { "display": "Tomato", "quantity": 2, "unit": "unit" },
-      { "display": "Onion", "quantity": 1, "unit": "unit" },
-      { "display": "Garlic", "quantity": 2, "unit": "clove" },
-      { "display": "Ginger", "quantity": 1, "unit": "tbsp" },
-      { "display": "Cumin", "quantity": 1, "unit": "tsp", "staple": true },
-      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
-    ]
+      {
+        "display": "Chickpeas",
+        "quantity": 2,
+        "unit": "can"
+      },
+      {
+        "display": "Tomato",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Onion",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Garlic",
+        "quantity": 2,
+        "unit": "clove"
+      },
+      {
+        "display": "Ginger",
+        "quantity": 1,
+        "unit": "tbsp"
+      },
+      {
+        "display": "Cumin",
+        "quantity": 1,
+        "unit": "tsp",
+        "staple": true
+      },
+      {
+        "display": "Oil",
+        "quantity": 2,
+        "unit": "tbsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1585937421612-70a008356fbe"
+    },
+    "categories": [
+      "Mains"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 14
   },
   {
     "slug": "banana-pancakes",
@@ -243,12 +719,44 @@
     "source": "json-cookbook",
     "description": "Soft pancakes sweetened with ripe mashed banana.",
     "ingredients": [
-      { "display": "Banana", "quantity": 2, "unit": "unit" },
-      { "display": "Flour", "quantity": 150, "unit": "g", "staple": true },
-      { "display": "Egg", "quantity": 2, "unit": "unit" },
-      { "display": "Milk", "quantity": 150, "unit": "ml" },
-      { "display": "Butter", "quantity": 1, "unit": "tbsp" }
-    ]
+      {
+        "display": "Banana",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Flour",
+        "quantity": 150,
+        "unit": "g",
+        "staple": true
+      },
+      {
+        "display": "Egg",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Milk",
+        "quantity": 150,
+        "unit": "ml"
+      },
+      {
+        "display": "Butter",
+        "quantity": 1,
+        "unit": "tbsp"
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445"
+    },
+    "categories": [
+      "Breakfast",
+      "Dessert"
+    ],
+    "protein": "Eggs",
+    "proteinG": 10
   },
   {
     "slug": "shrimp-fried-rice",
@@ -260,14 +768,54 @@
     "source": "recipe-dataset",
     "description": "Wok-tossed rice with shrimp, egg and vegetables.",
     "ingredients": [
-      { "display": "Rice", "quantity": 300, "unit": "g" },
-      { "display": "Shrimp", "quantity": 200, "unit": "g" },
-      { "display": "Egg", "quantity": 2, "unit": "unit" },
-      { "display": "Carrot", "quantity": 1, "unit": "unit" },
-      { "display": "Onion", "quantity": 0.5, "unit": "unit" },
-      { "display": "Soy Sauce", "quantity": 2, "unit": "tbsp", "staple": true },
-      { "display": "Oil", "quantity": 2, "unit": "tbsp", "staple": true }
-    ]
+      {
+        "display": "Rice",
+        "quantity": 300,
+        "unit": "g"
+      },
+      {
+        "display": "Shrimp",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Egg",
+        "quantity": 2,
+        "unit": "unit"
+      },
+      {
+        "display": "Carrot",
+        "quantity": 1,
+        "unit": "unit"
+      },
+      {
+        "display": "Onion",
+        "quantity": 0.5,
+        "unit": "unit"
+      },
+      {
+        "display": "Soy Sauce",
+        "quantity": 2,
+        "unit": "tbsp",
+        "staple": true
+      },
+      {
+        "display": "Oil",
+        "quantity": 2,
+        "unit": "tbsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b"
+    },
+    "categories": [
+      "Mains"
+    ],
+    "protein": "Seafood",
+    "proteinG": 24
   },
   {
     "slug": "greek-yogurt-berry-bowl",
@@ -279,9 +827,33 @@
     "source": "json-cookbook",
     "description": "Creamy yogurt topped with berries and a drizzle of honey.",
     "ingredients": [
-      { "display": "Greek Yogurt", "quantity": 200, "unit": "g" },
-      { "display": "Berries", "quantity": 100, "unit": "g" },
-      { "display": "Honey", "quantity": 1, "unit": "tbsp", "staple": true }
-    ]
+      {
+        "display": "Greek Yogurt",
+        "quantity": 200,
+        "unit": "g"
+      },
+      {
+        "display": "Berries",
+        "quantity": 100,
+        "unit": "g"
+      },
+      {
+        "display": "Honey",
+        "quantity": 1,
+        "unit": "tbsp",
+        "staple": true
+      }
+    ],
+    "imageCredit": {
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "url": "https://images.unsplash.com/photo-1488477181946-6428a0291777"
+    },
+    "categories": [
+      "Breakfast",
+      "Snack"
+    ],
+    "protein": "Vegetarian",
+    "proteinG": 20
   }
 ]

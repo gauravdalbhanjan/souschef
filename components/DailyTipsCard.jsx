@@ -17,12 +17,12 @@ export default function DailyTipsCard({ empty = false }) {
       overflow: 'hidden',
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.9 }}>
-        <TipsAndUpdatesIcon sx={{ color: C.amber, fontSize: 22 }} />
-        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: '19px' }}>
-          Daily Tips
+        <TipsAndUpdatesIcon sx={{ color: 'var(--accent-text)', fontSize: 18 }} />
+        <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: '16px' }}>
+          Daily Tip
         </Typography>
       </Box>
-      <Typography sx={{ color: 'rgba(255,255,255,0.82)', fontSize: '13px', fontWeight: 500, lineHeight: 1.55 }}>
+      <Typography sx={{ color: 'rgba(var(--ink),0.82)', fontSize: '12px', fontWeight: 500, lineHeight: 1.45 }}>
         {tip}
       </Typography>
     </Box>

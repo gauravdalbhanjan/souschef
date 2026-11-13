@@ -15,16 +15,20 @@ body {
   /* prevent iOS bounce / overscroll pulling bg colour */
   overscroll-behavior: none;
 
-  /* ── Liquid-glass base: deep slate gradient ── */
-  background:
-    radial-gradient(120% 120% at 18% 8%, #1a2338 0%, transparent 55%),
-    radial-gradient(120% 120% at 85% 12%, #241a33 0%, transparent 50%),
-    radial-gradient(130% 130% at 50% 100%, #10151f 0%, transparent 60%),
-    #0b0e14;
+  /* One ambient canvas for every screen (see --canvas below). */
+  background: var(--canvas);
+  background-color: var(--canvas-base);
   background-attachment: fixed;
+  color: var(--fg);
 }
 
-/* ── Animated fluid colour blobs (fixed behind everything) ── */
+/* Colour tokens live in theme.css (imported first in main.jsx). */
+
+/* The old colourful fluid blobs are retired: they made each screen's
+   background shift. Kept hidden so index.html needs no change. */
+#fluid-bg { display: none !important; }
+
+/* ── Animated fluid colour blobs (unused, hidden above) ── */
 #fluid-bg {
   position: fixed;
   inset: -20vmax;

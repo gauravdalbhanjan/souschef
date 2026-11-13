@@ -3,11 +3,11 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { canonicalOf, STAPLES } from '../server/src/lib/normalize.js'
-import { stepsFor } from '../server/src/data/steps.js'
+import { canonicalOf, STAPLES } from '../lib/normalize.js'
+import { stepsFor } from '../lib/steps.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const recipes = JSON.parse(readFileSync(join(__dirname, '..', 'server', 'src', 'data', 'recipes.json'), 'utf8'))
+const recipes = JSON.parse(readFileSync(join(__dirname, '..', 'lib', 'recipes.json'), 'utf8'))
 
 const q = (s) => `'${String(s ?? '').replace(/'/g, "''")}'`
 const out = [

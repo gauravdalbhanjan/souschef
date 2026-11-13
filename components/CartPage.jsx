@@ -7,11 +7,12 @@ import BoltIcon from '@mui/icons-material/Bolt'
 import GoBackButton from './GoBackButton'
 import { C, glass, T, PAD } from '../theme'
 import { api } from '../api'
+import { unitLabel } from '../units'
 
 const providerColor = {
   instacart: 'rgba(46,158,107,0.32)',
   amazonfresh: 'rgba(77,124,255,0.32)',
-  walmart: 'rgba(245,166,35,0.32)',
+  walmart: 'rgba(var(--accent-rgb),0.32)',
 }
 
 // Why an item is in the cart: an event plan, a pantry reorder, or a recipe.
@@ -68,33 +69,33 @@ export default function CartPage({ onBack }) {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         {items.length > 0 && (
-          <Button onClick={clear} sx={{ color: 'rgba(255,255,255,0.55)', textTransform: 'none', fontSize: `${T.sub}px` }}>Clear all</Button>
+          <Button onClick={clear} sx={{ color: 'var(--text-2)', textTransform: 'none', fontSize: `${T.sub}px` }}>Clear all</Button>
         )}
       </Box>
 
       <Box sx={{ px: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
-        <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.heading}px` }}>Shopping Cart</Typography>
-        <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: `${T.sub}px` }}>
+        <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.heading}px` }}>Shopping Cart</Typography>
+        <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>
           {items.length} item{items.length === 1 ? '' : 's'} to order
         </Typography>
       </Box>
 
       <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 1.5}px`, pb: `${PAD}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={26} sx={{ color: C.amber }} /></Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={26} sx={{ color: 'var(--accent-text)' }} /></Box>
         ) : items.length === 0 ? (
-          <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center', py: 6 }}>
+          <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, textAlign: 'center', py: 6 }}>
             Your cart is empty. Add missing ingredients from a recipe.
           </Typography>
         ) : (
           <Box sx={{ ...glass('neutral', { radius: 16, blur: 20, a: 0.06 }), overflow: 'hidden' }}>
             {items.map(it => (
-              <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, py: `${PAD * 1.25}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(255,255,255,.07)', '&:last-child': { borderBottom: 'none' } }}>
+              <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, py: `${PAD * 1.25}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(var(--ink),.07)', '&:last-child': { borderBottom: 'none' } }}>
                 <Box sx={{ flex: 1 }}>
-                  <Typography sx={{ color: '#fff', fontWeight: 600, fontSize: `${T.title}px` }}>{it.display}</Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px` }}>{it.quantity} {it.unit}{sourceLabel(it.source)}</Typography>
+                  <Typography sx={{ color: 'var(--fg)', fontWeight: 600, fontSize: `${T.title}px` }}>{it.display}</Typography>
+                  <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>{it.quantity} {unitLabel(it.unit)}{sourceLabel(it.source)}</Typography>
                 </Box>
-                <IconButton size="small" onClick={() => remove(it.id)} sx={{ color: '#666', '&:hover': { color: '#ff8a8a' } }}>
+                <IconButton size="small" onClick={() => remove(it.id)} sx={{ color: 'var(--text-2)', '&:hover': { color: 'var(--danger)' } }}>
                   <DeleteIcon sx={{ fontSize: 18 }} />
                 </IconButton>
               </Box>
@@ -105,22 +106,22 @@ export default function CartPage({ onBack }) {
         {/* Reorder from pantry */}
         {!loading && reorderable.length > 0 && (
           <Box sx={{ mt: `${PAD * 2}px` }}>
-            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title}px`, mb: `${PAD * 0.5}px` }}>
+            <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.title}px`, mb: `${PAD * 0.5}px` }}>
               From your pantry
             </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px`, mb: `${PAD}px` }}>
+            <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, mb: `${PAD}px` }}>
               Tap to add anything you already have to the cart for reordering.
             </Typography>
             <Box sx={{ ...glass('neutral', { radius: 16, blur: 20, a: 0.05 }), overflow: 'hidden' }}>
               {reorderable.map(p => (
-                <Box key={p.id} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, py: `${PAD}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(255,255,255,.06)', '&:last-child': { borderBottom: 'none' } }}>
+                <Box key={p.id} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, py: `${PAD}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(var(--ink),.06)', '&:last-child': { borderBottom: 'none' } }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: `${T.body}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.display}</Typography>
-                    <Typography sx={{ color: p.lowStock ? C.amber : 'rgba(255,255,255,0.4)', fontSize: `${T.sub}px` }}>
-                      {p.quantity} {p.unit}{p.lowStock ? ' · running low' : ''}
+                    <Typography sx={{ color: 'rgba(var(--ink),0.9)', fontWeight: 600, fontSize: `${T.body}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.display}</Typography>
+                    <Typography sx={{ color: p.lowStock ? C.amber : 'rgba(var(--ink),0.4)', fontSize: `${T.sub}px` }}>
+                      {p.quantity} {unitLabel(p.unit)}{p.lowStock ? ' · running low' : ''}
                     </Typography>
                   </Box>
-                  <IconButton size="small" onClick={() => reorder(p)} sx={{ ...glass(p.lowStock ? 'amber' : 'neutral', { radius: 40, blur: 10, a: p.lowStock ? 0.28 : 0.08 }), color: '#fff', width: 34, height: 34 }}>
+                  <IconButton size="small" onClick={() => reorder(p)} sx={{ ...glass(p.lowStock ? 'amber' : 'neutral', { radius: 40, blur: 10, a: p.lowStock ? 0.28 : 0.08 }), color: 'var(--fg)', width: 34, height: 34 }}>
                     <AddIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                 </Box>
@@ -132,11 +133,11 @@ export default function CartPage({ onBack }) {
         {/* Handoff providers */}
         {handoff && (
           <Box sx={{ mt: `${PAD * 2}px` }}>
-            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: `${T.title}px`, mb: `${PAD}px` }}>
+            <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.title}px`, mb: `${PAD}px` }}>
               Order on a delivery service
             </Typography>
             {!handoff.instacartApiConfigured && (
-              <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px`, mb: `${PAD}px`, lineHeight: 1.5 }}>
+              <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, mb: `${PAD}px`, lineHeight: 1.5 }}>
                 Opens the store with your items searched. Connect an Instacart API key to push the cart directly.
               </Typography>
             )}
@@ -146,7 +147,7 @@ export default function CartPage({ onBack }) {
                   key={p.id}
                   onClick={() => window.open(p.url, '_blank')}
                   endIcon={p.prefilled ? <BoltIcon /> : <OpenInNewIcon />}
-                  sx={{ ...glass('neutral', { radius: 16, blur: 14, a: 0.06 }), background: providerColor[p.id], color: '#fff', textTransform: 'none', fontWeight: 700, fontSize: `${T.body}px`, justifyContent: 'space-between', px: `${PAD * 1.5}px`, py: `${PAD * 1.25}px` }}
+                  sx={{ ...glass('neutral', { radius: 16, blur: 14, a: 0.06 }), background: providerColor[p.id], color: 'var(--fg)', textTransform: 'none', fontWeight: 700, fontSize: `${T.body}px`, justifyContent: 'space-between', px: `${PAD * 1.5}px`, py: `${PAD * 1.25}px` }}
                 >
                   {p.name}{p.prefilled ? ' · cart pre-filled' : ''}
                 </Button>
@@ -159,8 +160,8 @@ export default function CartPage({ onBack }) {
       {items.length > 0 && (
         <Box sx={{ flexShrink: 0, px: `${PAD * 1.5}px`, py: `${PAD * 1.5}px`, background: 'linear-gradient(to top, rgba(11,14,20,0.85) 55%, transparent)', backdropFilter: 'blur(6px)' }}>
           <Button fullWidth onClick={checkout} disabled={checkingOut}
-            startIcon={checkingOut ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : null}
-            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.34 }), color: '#fff', textTransform: 'none', fontWeight: 800, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(245,166,35,0.5)' } }}>
+            startIcon={checkingOut ? <CircularProgress size={16} sx={{ color: 'var(--fg)' }} /> : null}
+            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.34 }), color: 'var(--fg)', textTransform: 'none', fontWeight: 800, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(var(--accent-rgb),0.5)' } }}>
             {checkingOut ? 'Preparing…' : (handoff ? 'Refresh order links' : 'Checkout — choose delivery')}
           </Button>
         </Box>

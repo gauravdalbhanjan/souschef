@@ -7,6 +7,11 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import { C, glass, glassField, T, PAD } from '../theme'
 import { Logo } from './SplashScreen'
 import { supabase, supabaseConfigured } from '../supabaseClient'
+import { ThemeToggle } from './Ambient'
+
+// Primary yellow used across the app (pantry "Add to cart", scan "added" chips).
+const YELLOW = 'var(--accent)'
+const YELLOW_FG = 'var(--accent-fg)'
 
 // Real email + password authentication via Supabase Auth.
 // onGuest: start a no-account session (nothing is stored; see api.js guest mode).
@@ -63,6 +68,7 @@ export default function AuthPage({ onGuest }) {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       overflowY: 'auto',
     }}>
+      <ThemeToggle sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 10px)', right: 12 }} />
       <Box sx={{ mb: `${PAD * 4}px`, textAlign: 'center' }}>
         <Logo size="small" splashMode={false} />
       </Box>
@@ -72,16 +78,16 @@ export default function AuthPage({ onGuest }) {
         p: `${PAD * 3.5}px ${PAD * 3}px`, display: 'flex', flexDirection: 'column', gap: `${PAD * 2}px`,
       }}>
         <Box sx={{ textAlign: 'center' }}>
-          <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: `${T.heading + 4}px` }}>
+          <Typography sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 4}px` }}>
             {isSignup ? 'Create your account' : 'Welcome back'}
           </Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: `${T.body}px`, mt: '4px' }}>
+          <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, mt: '4px' }}>
             {isSignup ? 'Your pantry and cart stay private to you.' : 'Sign in to open your kitchen.'}
           </Typography>
         </Box>
 
         {!supabaseConfigured && (
-          <Typography sx={{ color: '#ff8a8a', fontSize: `${T.sub}px`, textAlign: 'center' }}>
+          <Typography sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, textAlign: 'center' }}>
             Supabase isn't configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
           </Typography>
         )}
@@ -97,7 +103,7 @@ export default function AuthPage({ onGuest }) {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={() => setShowPw(v => !v)} edge="end" aria-label={showPw ? 'Hide password' : 'Show password'}
-                    sx={{ color: 'rgba(255,255,255,0.5)', '&:hover': { color: '#fff' } }}>
+                    sx={{ color: 'var(--text-2)', '&:hover': { color: 'var(--fg)' } }}>
                     {showPw ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
                 </InputAdornment>
@@ -105,45 +111,48 @@ export default function AuthPage({ onGuest }) {
             },
           }} />
 
-        {error  && <Typography role="alert" sx={{ color: '#ff8a8a', fontSize: `${T.sub}px`, textAlign: 'center' }}>{error}</Typography>}
-        {notice && <Typography role="status" sx={{ color: '#7ee0ae', fontSize: `${T.sub}px`, textAlign: 'center' }}>{notice}</Typography>}
+        {error  && <Typography role="alert" sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, textAlign: 'center' }}>{error}</Typography>}
+        {notice && <Typography role="status" sx={{ color: 'var(--success)', fontSize: `${T.sub}px`, textAlign: 'center' }}>{notice}</Typography>}
 
         <Button type="submit" fullWidth disabled={busy || !supabaseConfigured}
-          startIcon={busy ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : null}
+          startIcon={busy ? <CircularProgress size={16} sx={{ color: YELLOW_FG }} /> : null}
           sx={{
-            ...glass('amber', { radius: 30, blur: 14, a: 0.32 }), color: '#fff', textTransform: 'none',
+            background: YELLOW, color: YELLOW_FG, borderRadius: '30px', textTransform: 'none',
             fontWeight: 800, fontSize: `${T.title + 3}px`, py: `${PAD * 1.5}px`,
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 28px rgba(245,166,35,0.3)',
-            '&:hover': { background: 'rgba(245,166,35,0.48)' },
-            '&.Mui-disabled': { color: 'rgba(255,255,255,0.5)' },
+            boxShadow: 'none',
+            '&:hover': { background: 'var(--accent-strong)' },
+            '&:focus-visible': { outline: '2px solid #fff', outlineOffset: 2 },
+            '&.Mui-disabled': { background: 'rgba(var(--accent-rgb),0.45)', color: 'rgba(26,20,0,0.6)' },
           }}>
           {busy ? 'Please wait…' : (isSignup ? 'Create account' : 'Sign in')}
         </Button>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px` }}>
-          <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
-          <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: `${T.sub}px` }}>or</Typography>
-          <Box sx={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
+          <Box sx={{ flex: 1, height: '1px', background: 'rgba(var(--ink),0.12)' }} />
+          <Typography sx={{ color: 'var(--text-3)', fontSize: `${T.sub}px` }}>or</Typography>
+          <Box sx={{ flex: 1, height: '1px', background: 'rgba(var(--ink),0.12)' }} />
         </Box>
 
         <Button type="button" fullWidth onClick={onGuest} disabled={busy}
           sx={{
-            ...glass('neutral', { radius: 30, blur: 14, a: 0.07 }), color: '#fff', textTransform: 'none',
+            ...glass('neutral', { radius: 30, blur: 14, a: 0.07 }), border: `1.5px solid ${YELLOW}`,
+            color: 'var(--fg)', textTransform: 'none',
             fontWeight: 700, fontSize: `${T.title + 1}px`, py: `${PAD * 1.25}px`,
-            '&:hover': { background: 'rgba(255,255,255,0.14)' },
-            '&.Mui-disabled': { color: 'rgba(255,255,255,0.4)' },
+            '&:hover': { background: 'rgba(var(--accent-rgb),0.12)', borderColor: YELLOW },
+            '&:focus-visible': { outline: `2px solid ${YELLOW}`, outlineOffset: 2 },
+            '&.Mui-disabled': { color: 'var(--text-3)', borderColor: 'rgba(var(--accent-rgb),0.4)' },
           }}>
-          Use as a guest
+          Guest access
         </Button>
-        <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: `${T.sub}px`, textAlign: 'center', mt: `-${PAD}px` }}>
+        <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, textAlign: 'center', mt: `-${PAD}px` }}>
           No account needed. Nothing is saved after you leave.
         </Typography>
 
-        <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: `${T.body}px`, textAlign: 'center' }}>
+        <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, textAlign: 'center' }}>
           {isSignup ? 'Already have an account? ' : 'New to SousChef? '}
           <Box component="button" type="button"
             onClick={() => { setMode(isSignup ? 'signin' : 'signup'); setError(''); setNotice('') }}
-            sx={{ all: 'unset', cursor: 'pointer', color: C.amber, fontWeight: 700, textDecoration: 'underline' }}>
+            sx={{ all: 'unset', cursor: 'pointer', color: 'var(--accent-text)', fontWeight: 700, textDecoration: 'underline' }}>
             {isSignup ? 'Sign in' : 'Create an account'}
           </Box>
         </Typography>

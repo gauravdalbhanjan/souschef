@@ -1,0 +1,100 @@
+/* ════════════════════════════════════════════════════════════════════════
+   SousChef design tokens: one file for every colour, surface and text style.
+   "Deep Obsidian & Warm Amber". Change a value here and home, routine,
+   events, cooking, dialogs and the tab bar all update together.
+
+   Usage in components:
+     background: var(--surface)             glass card / sheet / bar fill
+     border:     1px solid var(--surface-border)
+     backdrop-filter: var(--surface-blur)
+     color: var(--fg) | var(--text-2) | var(--text-3)
+     accent: var(--accent) (fills), var(--accent-text) (amber text)
+     rgba(var(--accent-rgb), a) / rgba(var(--ink), a) for tints
+   MUI's palette needs literal colours, so theme.js mirrors --accent.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root, [data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Accent: sunset amber */
+  --accent: #F59E0B;
+  --accent-strong: #D97706;       /* hover / pressed */
+  --accent-rgb: 245,158,11;
+  --accent-fg: #1a1100;           /* text on amber (contrast 9:1) */
+  --accent-text: #FBBF24;         /* amber used as text on dark */
+  --accent-grad: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+
+  /* Text */
+  --ink: 255,255,255;             /* rgba(var(--ink),a) tints + hairlines */
+  --fg: #F8FAFC;                  /* primary */
+  --text-2: #CBD5E1;              /* secondary: labels, meta, tags */
+  --text-3: #94A3B8;              /* tertiary: placeholders, captions */
+
+  /* Status text/icons (all ≥4.5:1 on the canvas) */
+  --success: #4ADE80;
+  --danger: #F87171;
+
+  /* Surfaces: translucent glass, same optical weight everywhere */
+  --surface: rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.07);
+  --surface-strong: rgba(255,255,255,0.08);   /* inputs, steppers */
+  --surface-border: rgba(255,255,255,0.08);
+  --surface-blur: blur(12px) saturate(140%);
+  --paper: rgba(17,22,35,0.96);   /* dialogs, menus, sheets */
+  --bar: rgba(11,15,25,0.72);     /* tab bar, sticky bars */
+  --deep: 11,15,25;               /* legacy glass('dark') */
+  --tile: #161B29;                /* image placeholders */
+  --shadow: 0 12px 32px rgba(0,0,0,0.38);
+
+  /* Canvas: velvety obsidian + celestial glow (sun gold / moon silver) */
+  --canvas-base: #0B0F19;
+  --glow: 245,158,11;
+  --glow-a: 0.12;
+  --canvas:
+    radial-gradient(90% 45% at 50% 14%, rgba(var(--glow),var(--glow-a)) 0%, rgba(var(--glow),0) 70%),
+    radial-gradient(70% 40% at 85% 88%, rgba(99,102,241,0.06) 0%, rgba(99,102,241,0) 70%),
+    linear-gradient(180deg, #111726 0%, #0B0F19 55%, #070A12 100%);
+}
+
+/* Light: crisp cool porcelain (no cream), same amber + glass language. */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --accent: #F59E0B;
+  --accent-strong: #D97706;
+  --accent-rgb: 245,158,11;
+  --accent-fg: #1a1100;
+  --accent-text: #B45309;         /* amber-700: passes AA on white */
+  --accent-grad: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+
+  --ink: 15,23,42;
+  --fg: #0F172A;
+  --text-2: #475569;
+  --text-3: #64748B;
+
+  --success: #15803D;             /* green-700: 5.0:1 on white */
+  --danger: #B91C1C;              /* red-700: 6.5:1 on white */
+
+  --surface: rgba(255,255,255,0.62);
+  --surface-hover: rgba(255,255,255,0.85);
+  --surface-strong: rgba(15,23,42,0.06);
+  --surface-border: rgba(15,23,42,0.08);
+  --surface-blur: blur(12px) saturate(140%);
+  --paper: rgba(255,255,255,0.97);
+  --bar: rgba(248,250,252,0.8);
+  --deep: 255,255,255;
+  --tile: #E2E8F0;
+  --shadow: 0 12px 32px rgba(15,23,42,0.12);
+
+  --canvas-base: #F1F4F9;
+  --glow: 245,158,11;
+  --glow-a: 0.16;
+  --canvas:
+    radial-gradient(90% 45% at 50% 14%, rgba(var(--glow),var(--glow-a)) 0%, rgba(var(--glow),0) 70%),
+    radial-gradient(70% 40% at 85% 88%, rgba(99,102,241,0.07) 0%, rgba(99,102,241,0) 70%),
+    linear-gradient(180deg, #F8FAFC 0%, #F1F4F9 55%, #E8EDF5 100%);
+}
+
+/* Night: the glow turns cool silver to match the moon orb. */
+html[data-sky='moon'] { --glow: 190,205,255; --glow-a: 0.1; }
+html[data-sky='moon'][data-theme='light'] { --glow: 130,150,210; --glow-a: 0.16; }

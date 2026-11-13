@@ -39,20 +39,20 @@ export default function TimerCard() {
     >
       <Box sx={{
         width: 46, height: 46, borderRadius: '50%',
-        background: 'rgba(255,255,255,0.14)',
-        border: '1px solid rgba(255,255,255,0.28)',
+        background: 'rgba(var(--ink),0.14)',
+        border: '1px solid rgba(var(--ink),0.28)',
         backdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <TimerIcon sx={{ color: C.amber, fontSize: 28 }} />
+        <TimerIcon sx={{ color: 'var(--accent-text)', fontSize: 28 }} />
       </Box>
       <Typography sx={{
-        color: '#fff',
+        color: 'var(--fg)',
         fontWeight: 900,
         fontSize: running ? '1.9rem' : '20px',
         lineHeight: 1.1,
         whiteSpace: 'pre-line',
-        textShadow: '0 2px 12px rgba(245,166,35,0.5)',
+        textShadow: '0 2px 12px rgba(var(--accent-rgb),0.5)',
         fontVariantNumeric: 'tabular-nums',
       }}>
         {running

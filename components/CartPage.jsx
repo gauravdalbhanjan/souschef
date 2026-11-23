@@ -69,23 +69,26 @@ export default function CartPage({ onBack }) {
   }
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
-        <GoBackButton onClick={onBack}>
-          {items.length > 0 && (
-            <Button onClick={clear} sx={{ color: 'var(--text-2)', textTransform: 'none', fontSize: `${T.sub}px` }}>Clear all</Button>
-          )}
-        </GoBackButton>
+    // Grows to fill the screen; only the item list scrolls.
+    <Box sx={{ flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
+      <Box sx={{ px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+        <GoBackButton onClick={onBack} />
       </Box>
 
+      {/* Title and Clear all on the same line (count underneath) */}
       <Box sx={{ px: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
-        <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.heading}px` }}>Shopping Cart</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: `${PAD}px` }}>
+          <Typography component="h1" sx={{ minWidth: 0, color: 'var(--fg)', fontWeight: 700, fontSize: `${T.heading}px`, lineHeight: 1.2 }}>Shopping Cart</Typography>
+          {items.length > 0 && (
+            <Button onClick={clear} sx={{ flexShrink: 0, minHeight: 40, color: 'var(--text-2)', textTransform: 'none', fontSize: `${T.sub}px`, fontWeight: 600 }}>Clear all</Button>
+          )}
+        </Box>
         <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>
           {items.length} item{items.length === 1 ? '' : 's'} to order
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 1.5}px`, pb: `${PAD}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', px: `${PAD * 1.5}px`, pb: `${PAD}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={26} sx={{ color: 'var(--accent-text)' }} /></Box>
         ) : items.length === 0 ? (

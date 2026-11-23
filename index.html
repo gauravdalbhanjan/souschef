@@ -2,11 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Icons rendered from the app's logo (scripts/make-icons.mjs) -->
+    <!-- Icons: the logo's cloche (scripts/make-icons.mjs). SVG first, PNG for older browsers. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Home-screen app: full screen, content under a translucent status bar (safe-area padding handles it) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SousChef" />
     <meta name="description" content="Recipe and pantry companion: track your pantry, cook from what you have, follow clear steps." />
     <meta property="og:title" content="SousChef — Cooking made easy" />
     <meta property="og:description" content="Track your pantry, cook from what you have, follow clear steps." />

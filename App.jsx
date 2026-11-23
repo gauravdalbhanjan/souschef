@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/material'
+import { ThemeProvider, CssBaseline } from '@mui/material'
 import { Box, Typography } from '@mui/material'
-import { makeTheme, C, T, PAD } from './theme'
+import { makeTheme, T, PAD } from './theme'
 import { ColorModeContext, useColorModeState } from './lib/colorMode.js'
 import { useSkyAttribute } from './lib/ambience.js'
 import { api } from './api'
@@ -53,33 +53,23 @@ function CuratingOverlay({ show }) {
 const GUEST_DAY_KEY = 'souschef_guest_day'
 const localDay = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, device time zone
 
-function Shell({ isMobile, children, navIndex, onNav, onCamera, hideNav = false }) {
+// Fluid app frame (index.css .app-shell / .app-main): full width on every
+// screen, safe-area padding, content capped and centred on wide screens; the
+// tab bar / rail (BottomNav) is position: fixed outside the content flow.
+function Shell({ children, navIndex, onNav, onCamera, hideNav = false }) {
   return (
-    <Box sx={{
-      width: '100%', maxWidth: isMobile ? 'none' : 648, mx: 'auto',
-      background: AMBIENT_BG,
-      borderLeft: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
-      borderRight: isMobile ? 'none' : `1px solid ${C.glassBorder}`,
-      // 100svh = the visible height even with the browser toolbars showing, so
-      // nothing (the tab bar especially) is ever pushed below the fold.
-      height: '100vh',
-      '@supports (height: 100svh)': { height: '100svh' },
-      display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative',
-      pt: 'env(safe-area-inset-top, 0px)', // clear the notch / status bar
-    }}>
+    <Box className={`app-shell${hideNav ? ' app-shell--no-nav' : ''}`} sx={{ background: AMBIENT_BG }}>
       {/* Same celestial glow + weather diffusion behind every route. */}
       <AmbientBackground />
-      <Box sx={{ position: 'relative', zIndex: 1, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <Box component="main" className="app-main">
         {children}
-        {!hideNav && <BottomNav active={navIndex} onChange={onNav} onCamera={onCamera} />}
       </Box>
+      {!hideNav && <BottomNav active={navIndex} onChange={onNav} onCamera={onCamera} />}
     </Box>
   )
 }
 
 function InnerApp() {
-  const muiTheme = useTheme()
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
 
   const [page, setPage]         = useState('splash')
   // The login screen shows after the splash once a day; SousChef Lite continues
@@ -217,7 +207,7 @@ function InnerApp() {
 
   if (page === 'recipe') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+      <Shell navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         <RecipeDetail
           slug={activeSlug}
           onBack={() => goBack('home')}
@@ -233,7 +223,7 @@ function InnerApp() {
   if (page === 'cooking') {
     return (
       // Focus mode: no tab bar while cooking (exit with the back button).
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)} hideNav>
+      <Shell navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)} hideNav>
         <CookingMode
           slug={activeSlug}
           session={cookSession}
@@ -249,7 +239,7 @@ function InnerApp() {
 
   if (page === 'settings' || page === 'privacy' || page === 'about') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+      <Shell navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         {page === 'settings'
           ? <SettingsPage onBack={() => goBack('home')} onOpenPrivacy={() => setPage('privacy')} onOpenAbout={() => setPage('about')} onDataChanged={() => refreshSuggestions()} />
           : page === 'about' ? <AboutPage onBack={() => goBack('settings')} />
@@ -262,7 +252,7 @@ function InnerApp() {
 
   if (page === 'cart') {
     return (
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+      <Shell navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         <CartPage onBack={() => goBack(prevPage)} />
         <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
         <CuratingOverlay show={curating} />
@@ -272,7 +262,7 @@ function InnerApp() {
 
   return (
     <>
-      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+      <Shell navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
         {/* Tabs slide in the way you're going: a later tab from the right, an earlier one from the left. */}
         <Box key={page} className={tabSlide.dir ? `slide-from-${tabSlide.dir}` : undefined} sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {page === 'home' && (

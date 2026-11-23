@@ -40,6 +40,8 @@ function shuffled(list, seed) {
 }
 const BROWSE_KEY = 'souschef_browse'
 const PAGE = 60 // tiles per page in Browse all
+// Recipe grid columns: phone 3, large phone/tablet 4, tablet landscape 5, desktop 6.
+const GRID_COLS = { xs: 'repeat(3, minmax(0, 1fr))', sm: 'repeat(4, minmax(0, 1fr))', md: 'repeat(5, minmax(0, 1fr))', lg: 'repeat(6, minmax(0, 1fr))' }
 const SIDE = PAD * 2
 
 // Compact, borderless recipe card for horizontal rows.
@@ -213,7 +215,7 @@ export default function ChefHome({
             <Box component="button" type="button" onClick={() => setFilters(DEFAULT_FILTERS)} sx={{ ...linkSx, color: 'var(--accent-text)', mt: `${PAD}px` }}>Clear filters</Box>
           </Box>
         ) : (
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
             {visible.slice(0, pageSize).map(d => <RecipeCard key={d.slug} dish={d} onClick={() => onOpenRecipe(d)} />)}
           </Box>
         )}
@@ -337,7 +339,7 @@ export default function ChefHome({
                     {found.chips.length > 0 && <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, mt: '4px' }}>Remove a filter above to see more.</Typography>}
                   </Box>
                 ) : (
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
                     {found.shown.slice(0, 60).map(d => <RecipeCard key={d.slug} dish={d} onClick={() => onOpenRecipe(d)} />)}
                   </Box>
                 )}

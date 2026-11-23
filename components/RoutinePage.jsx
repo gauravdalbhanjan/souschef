@@ -229,8 +229,11 @@ export default function RoutinePage({ onBack, routineKey, onChanged }) {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pt: `${PAD * 0.5}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: `${PAD * 2}px`, pt: `${PAD * 0.5}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+        {/* One column on phones, two from 900 px; rows always fit their card. */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' }, gridAutoRows: 'max-content', columnGap: `${PAD * 2}px`, alignItems: 'start' }}>
         {(showSamples ? SAMPLE_ROUTINES : sorted).map(r => <RoutineCard key={r.id} routine={r} onEdit={openEditor} onToggleDay={toggleDay} />)}
+        </Box>
         <Box sx={{ height: `${PAD}px` }} />
       </Box>
 

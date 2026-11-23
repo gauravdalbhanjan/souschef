@@ -1,26 +1,45 @@
 // Home: an ambient, assistant-style canvas. A large centered prompt, one
 // conversational input ("Ask Chef or suggest a meal") with mic, and
 // personalised suggestions in clean horizontal rows. No heavy cards/borders.
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
-import LogoutIcon from '@mui/icons-material/Logout'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import CloseIcon from '@mui/icons-material/Close'
 import { T, PAD } from '../theme'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import { ListeningOrb, PromptBar, Pill, ThemeToggle, ArrowScroller, YELLOW } from './Ambient'
 import RoutineToday from './RoutineToday'
-import RecipeCard, { StockIndicator } from './RecipeCard'
+import RecipeCard, { StockIndicator, DishImage, PhotoBadge } from './RecipeCard'
 import { useAmbience, heroTint } from '../lib/ambience.js'
 import FilterBar, { DEFAULT_FILTERS } from './FilterBar'
 import { applyFilters } from '../lib/recipeMeta.js'
+import { cuisineOptions } from '../lib/cuisines.js'
 import { askChef, promptChips } from '../lib/chef.js'
 import { useSpeech, say } from '../lib/useSpeech.js'
+import { localStore } from '../lib/localStore.js'
+import { understand, results, allergyFilter } from '../lib/search.js'
+import { api, recipeTotal } from '../api'
+import { read, write } from '../lib/deviceStore.js'
+import { HIDDEN_NOTE } from '../lib/guardrails/allergens.js'
+import { MSG } from '../lib/guardrails/policy.js'
+import { getSource } from '../lib/guardrails/sources.js'
+import { removeChip } from '../lib/guardrails/filter.js'
+import CartButton from './CartButton'
+import GoBackButton from './GoBackButton'
 
 const FILTER_KEY = 'souschef_filters'
+// Seeded shuffle (Fisher-Yates + mulberry32): random per visit, stable on re-render.
+function shuffled(list, seed) {
+  let a = Math.floor(seed * 2 ** 32) >>> 0
+  const rand = () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
+  const out = [...list]
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [out[i], out[j]] = [out[j], out[i]] }
+  return out
+}
 const BROWSE_KEY = 'souschef_browse'
+const PAGE = 60 // tiles per page in Browse all
 const SIDE = PAD * 2
 
 // Compact, borderless recipe card for horizontal rows.
@@ -36,7 +55,8 @@ function MiniCard({ dish, onOpen, suggestion }) {
         '&:focus-visible': { outline: `2px solid ${YELLOW}`, outlineOffset: 3, borderRadius: '18px' } }}>
       <Box sx={{ position: 'relative', width: 148, height: 148, borderRadius: '18px', overflow: 'hidden', background: 'var(--tile)',
         boxShadow: 'var(--shadow)' }}>
-        <Box component="img" src={dish.img} alt="" loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <DishImage dish={dish} />
+        {dish.ai && <PhotoBadge>AI</PhotoBadge>}
         {/* Top-right badge: "Suggestion" (glass over the photo) when the pantry
             is empty, otherwise the pantry-stock %. */}
         {suggestion ? (
@@ -66,7 +86,7 @@ function MiniCard({ dish, onOpen, suggestion }) {
   )
 }
 
-function Row({ title, hint, dishes, onOpen, suggestion = false }) {
+function Row({ title, hint, dishes, onOpen, suggestion = false, onSeeAll }) {
   if (!dishes.length) return null
   return (
     <Box component="section" aria-label={title || 'Chef\u2019s picks'} sx={{ mt: title ? `${PAD * 3}px` : `${PAD * 1.5}px` }}>
@@ -77,7 +97,7 @@ function Row({ title, hint, dishes, onOpen, suggestion = false }) {
         </Box>
       )}
       {/* Arrows sit over the photos (148px tall), not the captions. */}
-      <ArrowScroller label="recipes" step={148 + PAD * 1.5} arrowSize={34} inset={6} arrowTop={74}
+      <ArrowScroller label="recipes" step={148 + PAD * 1.5} arrowSize={34} inset={6} arrowTop={74} onEnd={onSeeAll} endLabel="See all recipes"
         sx={{ gap: `${PAD * 1.5}px`, px: `${SIDE}px`, pb: `${PAD}px`, scrollSnapType: 'x proximity', scrollPaddingLeft: `${SIDE}px` }}>
         {dishes.map(d => <MiniCard key={d.slug} dish={d} onOpen={onOpen} suggestion={suggestion} />)}
         <Box sx={{ width: `${PAD}px`, flexShrink: 0 }} />
@@ -93,48 +113,65 @@ const linkSx = {
 }
 
 export default function ChefHome({
-  suggestions, loading, pantryCount, pantryItems, routines, loadError, userEmail, isGuest,
-  onOpenRecipe, onOpenRoutine, onAddGroceries, onSignOut,
+  suggestions, loading, pantryCount, pantryItems, routines, loadError,
+  onOpenRecipe, onOpenRoutine, onAddGroceries, onOpenSettings, onViewCart,
 }) {
   const pantryEmpty = pantryCount === 0
   const [text, setText] = useState('')
-  const [answer, setAnswer] = useState(null) // { question, reply, recipes }
+  const [answer, setAnswer] = useState(null) // { question, message?, sources?, filter?, fallback? }
+  const [allergies, setAllergiesState] = useState(() => read('allergies'))
+  const setAllergies = (v) => { setAllergiesState(v); write('allergies', v) }
   const [thinking, setThinking] = useState(false)
   // Remembered for the session, so Back from a recipe returns to All recipes.
   const [browse, setBrowseState] = useState(() => { try { return sessionStorage.getItem(BROWSE_KEY) === '1' } catch { return false } })
-  const setBrowse = (v) => { setBrowseState(v); try { sessionStorage.setItem(BROWSE_KEY, v ? '1' : '0') } catch { /* ignore */ } }
+  // All recipes slides in from the right; Go Back slides home in from the left.
+  const [slide, setSlide] = useState(null)
+  const setBrowse = (v) => { setSlide(v ? 'right' : 'left'); setBrowseState(v); try { sessionStorage.setItem(BROWSE_KEY, v ? '1' : '0') } catch { /* ignore */ } }
+  const slideClass = slide ? `slide-from-${slide}` : undefined
   const viaVoice = useRef(false)
+  // Every recipe (bundled + dataset), ranked by the pantry: loaded on Browse
+  // all or the first question, so the first open stays light.
+  const [all, setAll] = useState(null)
+  const loadAll = async () => { const list = await api.allRecipes(); setAll(list); return list }
+  const [pageSize, setPageSize] = useState(PAGE)
+  useEffect(() => { if (browse) loadAll() }, [browse, pantryCount])
   const [chipSeed] = useState(Math.random) // 3rd/4th prompt chips: shuffled once per visit
   const sky = useAmbience() // { headline, sub?, celestial, weather }
   const [filters, setFiltersState] = useState(() => {
-    try { return { ...DEFAULT_FILTERS, ...JSON.parse(localStorage.getItem(FILTER_KEY) || '{}') } } catch { return DEFAULT_FILTERS }
+    try { return { ...DEFAULT_FILTERS, ...JSON.parse(localStore.getItem(FILTER_KEY) || '{}') } } catch { return DEFAULT_FILTERS }
   })
   const setFilters = (f) => {
     setFiltersState(f)
-    try { localStorage.setItem(FILTER_KEY, JSON.stringify(f)) } catch { /* ignore */ }
+    try { localStore.setItem(FILTER_KEY, JSON.stringify(f)) } catch { /* ignore */ }
   }
 
-  const ask = (q) => {
+  const ask = async (q) => {
     const question = String(q || '').trim()
     if (!question) return
-    const res = askChef(question, { suggestions })
     setText('')
-    if (res?.action === 'groceries') {
-      if (viaVoice.current) say(res.reply)
+    // "I bought ..." still opens Add groceries (existing rule-based Chef).
+    const groceries = askChef(question, { suggestions })
+    if (groceries?.action === 'groceries') {
+      if (viaVoice.current) say(groceries.reply)
       viaVoice.current = false
-      onAddGroceries(res.items || '')
+      onAddGroceries(groceries.items || '')
       return
     }
     setThinking(true)
     setAnswer(null)
-    // A short beat so the reply feels like a response, not a filter.
-    setTimeout(() => {
-      setThinking(false)
-      setAnswer({ question, ...res })
-      if (viaVoice.current) say(res.reply)
+    const pool = all || await loadAll()
+    const u = await understand(question, pool)
+    setThinking(false)
+    if (!u.ok) {
+      setAnswer({ question, message: u.message, sources: u.sources })
+      if (viaVoice.current) say(u.message)
       viaVoice.current = false
-    }, 450)
+      return
+    }
+    setAnswer({ question, filter: u.filter, fallback: u.fallback })
+    viaVoice.current = false
   }
+  const removeAnswerChip = (key) => setAnswer(a => (a ? { ...a, filter: removeChip(a.filter || {}, key) } : a))
 
   const speech = useSpeech({
     onInterim: (t) => setText(t),
@@ -142,23 +179,34 @@ export default function ChefHome({
   })
   const toggleMic = () => (speech.listening ? speech.stop() : speech.start())
 
-  const ready = suggestions.filter(s => s.haveAll)
-  const almost = suggestions.filter(s => !s.haveAll && s.match > 0).slice(0, 10)
-  const visible = applyFilters(suggestions, filters)
+  // True total (bundled + every dataset recipe), known before the download.
+  const total = all ? all.length : recipeTotal()
+  const catalog = suggestions
+  // Shuffled once per visit (same order while you stay on the page).
+  const ready = shuffled(catalog.filter(s => s.haveAll), chipSeed)
+  // Only dishes whose core protein you have (no Teriyaki Salmon without salmon).
+  const almost = catalog.filter(s => !s.haveAll && s.match > 0 && s.relevant).slice(0, 10)
+  const pool = all || suggestions
+  // Cuisine menu: every cuisine in the recipes being browsed, with counts.
+  const cuisines = cuisineOptions(pool)
+  const browseAll = allergyFilter(applyFilters(pool, filters), allergies)
+  const visible = browseAll.shown
+  const foundBase = answer && !answer.message ? (answer.fallback ? { shown: answer.fallback, hiddenUnchecked: 0, chips: [] } : results(pool, answer.filter, allergies)) : null
+  // The filter bar above the answer narrows it too (time, protein, category, cuisine).
+  const found = foundBase && { ...foundBase, shown: applyFilters(foundBase.shown, filters) }
 
   // ── Browse-all view (the full grid + filters, one tap away) ───────────────
   if (browse) {
     return (
-      <Box sx={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, pt: `${PAD * 1.5}px` }}>
+      <Box key="browse" className={slideClass} sx={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, pt: `${PAD * 1.5}px` }}>
         <Box sx={{ px: `${SIDE}px`, mb: `${PAD}px` }}>
-          <Box component="button" type="button" onClick={() => setBrowse(false)} sx={linkSx}>
-            <ArrowBackIosNewIcon sx={{ fontSize: 13, mr: '4px' }} /> Back to Chef
-          </Box>
+          <GoBackButton onClick={() => setBrowse(false)} />
           <Typography component="h1" sx={{ color: 'var(--fg)', fontSize: `${T.heading + 2}px`, fontWeight: 800, mt: `${PAD}px` }}>All recipes</Typography>
         </Box>
         <Box sx={{ px: `${PAD}px` }}>
-          <FilterBar filters={filters} onChange={setFilters} resultCount={visible.length} total={suggestions.length} />
+          <FilterBar filters={filters} onChange={setFilters} resultCount={visible.length} total={total} allergies={allergies} onAllergies={setAllergies} cuisines={cuisines} />
         </Box>
+        {!all && <Typography role="status" sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, px: `${SIDE}px`, pt: `${PAD}px` }}>Loading all {total.toLocaleString()} recipes\u2026</Typography>}
         {visible.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 5 }}>
             <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.title + 2}px` }}>No recipes match these filters</Typography>
@@ -166,8 +214,18 @@ export default function ChefHome({
           </Box>
         ) : (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
-            {visible.map(d => <RecipeCard key={d.slug} dish={d} onClick={() => onOpenRecipe(d)} />)}
+            {visible.slice(0, pageSize).map(d => <RecipeCard key={d.slug} dish={d} onClick={() => onOpenRecipe(d)} />)}
           </Box>
+        )}
+        {visible.length > pageSize && (
+          <Box sx={{ textAlign: 'center', pb: `${PAD * 2}px` }}>
+            <Box component="button" type="button" onClick={() => setPageSize(n => n + PAGE)} sx={{ ...linkSx, color: 'var(--accent-text)' }}>
+              Show more · {(visible.length - pageSize).toLocaleString()} left
+            </Box>
+          </Box>
+        )}
+        {browseAll.hiddenUnchecked > 0 && (
+          <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, px: `${SIDE}px`, pb: `${PAD * 2}px` }}>{HIDDEN_NOTE}</Typography>
         )}
       </Box>
     )
@@ -175,17 +233,18 @@ export default function ChefHome({
 
   // ── Assistant canvas ───────────────────────────────────────────────────────
   return (
-    <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+    <Box key="home" className={slideClass} sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
       {/* Quiet top line: session + sign out */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${SIDE}px`, pt: `${PAD}px` }}>
         <Typography sx={{ color: 'var(--text-3)', fontSize: `${T.sub}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {isGuest ? 'Guest session \u00b7 nothing is saved' : (userEmail ? `Signed in as ${userEmail}` : 'Signed in')}
+          Saved on this device
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           <ThemeToggle />
-          <IconButton onClick={onSignOut} aria-label={isGuest ? 'Exit guest session' : 'Sign out'} title={isGuest ? 'Exit guest session' : 'Sign out'}
+          <CartButton onClick={onViewCart} size={32} />
+          <IconButton onClick={onOpenSettings} aria-label="Settings" title="Settings"
             sx={{ color: 'var(--text-2)', width: 36, height: 36 }}>
-            <LogoutIcon sx={{ fontSize: 18 }} />
+            <SettingsOutlinedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Box>
       </Box>
@@ -211,7 +270,7 @@ export default function ChefHome({
 
       {/* The conversation input */}
       <Box sx={{ px: `${SIDE}px`, mt: `${PAD * 2.5}px` }}>
-        <PromptBar value={text} onChange={setText} onSubmit={() => ask(text)} placeholder="Ask Chef or suggest a meal"
+        <PromptBar value={text} onChange={setText} onSubmit={() => ask(text)} placeholder="Ask Sous Chef or suggest a meal"
           listening={speech.listening} micSupported={speech.supported} onMic={toggleMic} busy={thinking} />
         {speech.error && <Typography role="alert" sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, mt: `${PAD}px`, textAlign: 'center' }}>{speech.error}</Typography>}
       </Box>
@@ -225,7 +284,7 @@ export default function ChefHome({
 
       {loadError && (
         <Box role="alert" sx={{ mx: `${SIDE}px`, mt: `${PAD * 2}px` }}>
-          <Typography sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, fontWeight: 700 }}>Database isn't ready</Typography>
+          <Typography sx={{ color: 'var(--danger)', fontSize: `${T.sub}px`, fontWeight: 700 }}>Couldn’t load your recipes</Typography>
           <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, lineHeight: 1.5 }}>{loadError}</Typography>
         </Box>
       )}
@@ -254,9 +313,39 @@ export default function ChefHome({
                   <CloseIcon sx={{ fontSize: 16 }} /> Clear
                 </Box>
               </Box>
-              <Typography sx={{ color: 'var(--fg)', fontSize: `${T.title + 4}px`, fontWeight: 600, lineHeight: 1.45, mt: `${PAD * 1.5}px` }}>{answer.reply}</Typography>
+              {answer.message && (
+                <>
+                  <Typography sx={{ color: 'var(--fg)', fontSize: `${T.title + 4}px`, fontWeight: 600, lineHeight: 1.45, mt: `${PAD * 1.5}px` }}>{answer.message}</Typography>
+                  {(answer.sources || []).map(getSource).filter(Boolean).map(src => (
+                    <Box key={src.id} component="a" href={src.url} target="_blank" rel="noopener noreferrer"
+                      sx={{ ...linkSx, display: 'inline-flex', mt: `${PAD}px`, mr: `${PAD * 2}px`, color: 'var(--accent-text)' }}>
+                      {src.name} ↗
+                    </Box>
+                  ))}
+                </>
+              )}
             </Box>
-            <Row title="" dishes={answer.recipes} onOpen={onOpenRecipe} suggestion={pantryEmpty} />
+            {found && (
+              <Box sx={{ mt: `${PAD * 1.5}px` }}>
+                <Box sx={{ px: `${PAD}px` }}>
+                  <FilterBar filters={filters} onChange={setFilters} resultCount={found.shown.length} total={total}
+                    allergies={allergies} onAllergies={setAllergies} chips={found.chips} onRemoveChip={removeAnswerChip} cuisines={cuisines} />
+                </Box>
+                {found.shown.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4, px: `${SIDE}px` }}>
+                    <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.title + 2}px` }}>{MSG.noMatch}</Typography>
+                    {found.chips.length > 0 && <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, mt: '4px' }}>Remove a filter above to see more.</Typography>}
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', columnGap: `${PAD * 1.25}px`, rowGap: `${PAD * 2}px`, px: `${SIDE}px`, pt: `${PAD}px`, pb: `${PAD * 2}px` }}>
+                    {found.shown.slice(0, 60).map(d => <RecipeCard key={d.slug} dish={d} onClick={() => onOpenRecipe(d)} />)}
+                  </Box>
+                )}
+                {found.hiddenUnchecked > 0 && (
+                  <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, px: `${SIDE}px`, pb: `${PAD * 2}px` }}>{HIDDEN_NOTE}</Typography>
+                )}
+              </Box>
+            )}
           </Box>
         )}
       </Box>
@@ -266,11 +355,11 @@ export default function ChefHome({
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}><CircularProgress size={24} sx={{ color: 'var(--accent-text)' }} /></Box>
       ) : !answer && (
         <>
-          <Row title="Ready to cook" hint="You have everything for these" dishes={ready} onOpen={onOpenRecipe} />
-          <Row title={ready.length ? 'Almost there' : 'Closest to ready'} hint="Just a few ingredients short" dishes={almost} onOpen={onOpenRecipe} />
+          <Row title="Ready to cook" hint="You have everything for these" dishes={ready} onOpen={onOpenRecipe} onSeeAll={() => setBrowse(true)} />
+          <Row title={ready.length ? 'Almost there' : 'Closest to ready'} hint="Just a few ingredients short" dishes={almost} onOpen={onOpenRecipe} onSeeAll={() => setBrowse(true)} />
           {pantryEmpty && (
             <>
-              <Row title="Popular picks" hint="Add groceries to see what you can cook right now" dishes={suggestions.slice(0, 10)} onOpen={onOpenRecipe} suggestion />
+              <Row title="Popular picks" hint="Add groceries to see what you can cook right now" dishes={catalog.slice(0, 10)} onOpen={onOpenRecipe} suggestion />
               <Box sx={{ px: `${SIDE}px`, mt: `${PAD}px` }}>
                 <Box component="button" type="button" onClick={() => onAddGroceries('')} sx={{ ...linkSx, color: 'var(--accent-text)' }}>
                   <CameraAltIcon sx={{ fontSize: 16, mr: '6px' }} /> Snap a receipt to stock your pantry
@@ -290,7 +379,7 @@ export default function ChefHome({
       {!loading && suggestions.length > 0 && (
         <Box sx={{ px: `${SIDE}px`, mt: `${PAD}px`, mb: `${PAD * 3}px` }}>
           <Box component="button" type="button" onClick={() => setBrowse(true)} sx={linkSx}>
-            Browse all {suggestions.length} recipes <ChevronRightIcon sx={{ fontSize: 18 }} />
+            Browse all {total.toLocaleString()} recipes <ChevronRightIcon sx={{ fontSize: 18 }} />
           </Box>
         </Box>
       )}

@@ -1,0 +1,16 @@
+| caesar-salad | 350 | 290 | -17% | - |
+| aglio-olio-spaghetti | 550 | 630 | +15% | - |
+| caesar-wrap | 380 | 440 | +16% | - |
+| bacon-ham-sandwich | 600 | 770 | +28% | - |
+| guacamole | 300 | n/a | n/a | Cilantro |
+| chicken-nuggets | 420 | 470 | +12% | - |
+| chicken-strips | 500 | 510 | +2% | - |
+| chicken-fries | 450 | 690 | +53% | - |
+| bundt-cake | 350 | 490 | +40% | - |
+| tomato-spinach-pasta | 480 | 600 | +25% | - |
+| veggie-omelette | 260 | 460 | +77% | - |
+| garlic-butter-salmon | 410 | 920 | +124% | - |
+| chickpea-curry | 390 | 340 | -13% | - |
+| banana-pancakes | 330 | 550 | +67% | - |
+| shrimp-fried-rice | 520 | 850 | +63% | - |
+| greek-yogurt-berry-bowl | 220 | 280 | +27% | - |

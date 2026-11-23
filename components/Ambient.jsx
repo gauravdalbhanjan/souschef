@@ -108,7 +108,9 @@ export function ListeningOrb({ active = false, size = 120, celestial: celestialP
 // Horizontal scroller with round prev/next arrows at the edges, for mouse,
 // keyboard and anyone who wouldn't guess there's more off-screen. The left
 // arrow appears once moved; the right one hides at the end. Swipe still works.
-export function ArrowScroller({ children, label = 'items', step, sx, arrowSize = 30, inset = 4, arrowTop = '50%' }) {
+// onEnd: once the row is scrolled to its end, the right arrow stays and opens
+// the full list (e.g. Browse all).
+export function ArrowScroller({ children, label = 'items', step, sx, arrowSize = 30, inset = 4, arrowTop = '50%', onEnd, endLabel = 'See all' }) {
   const ref = useRef(null)
   const [edges, setEdges] = useState({ left: false, right: false })
   const measure = useCallback(() => {
@@ -130,9 +132,9 @@ export function ArrowScroller({ children, label = 'items', step, sx, arrowSize =
     if (el) el.scrollBy({ left: dir * (step || el.clientWidth * 0.75), behavior: 'smooth' })
   }
   const arrow = (side) => (
-    <Box component="button" type="button" onClick={() => go(side === 'left' ? -1 : 1)}
-      aria-label={side === 'left' ? `Previous ${label}` : `More ${label}`}
-      sx={{ all: 'unset', position: 'absolute', top: arrowTop, [side]: inset, transform: 'translateY(-50%)', zIndex: 2, cursor: 'pointer',
+    <Box component="button" type="button" onClick={() => (side === 'end' ? onEnd() : go(side === 'left' ? -1 : 1))}
+      aria-label={side === 'left' ? `Previous ${label}` : side === 'end' ? endLabel : `More ${label}`}
+      sx={{ all: 'unset', position: 'absolute', top: arrowTop, [side === 'end' ? 'right' : side]: inset, transform: 'translateY(-50%)', zIndex: 2, cursor: 'pointer',
         width: arrowSize, height: arrowSize, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'var(--paper)', color: 'var(--fg)', boxShadow: '0 2px 10px rgba(0,0,0,0.25)', transition: 'transform .15s',
         '&:hover': { transform: 'translateY(-50%) scale(1.08)' },
@@ -155,6 +157,7 @@ export function ArrowScroller({ children, label = 'items', step, sx, arrowSize =
       </Box>
       {edges.left && arrow('left')}
       {edges.right && arrow('right')}
+      {!edges.right && edges.left && onEnd && arrow('end')}
     </Box>
   )
 }

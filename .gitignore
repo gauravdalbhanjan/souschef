@@ -26,3 +26,11 @@ dist-ssr
 # local artifacts
 _*.png
 _*.mjs
+
+# secrets / local config (never commit)
+.env
+.env.*
+!.env.example
+
+# OCR assets copied from node_modules at build (scripts/copy-ocr.mjs)
+public/tesseract/

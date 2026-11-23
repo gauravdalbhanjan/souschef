@@ -1,0 +1,44 @@
+{
+  "generated": "2026-11-18",
+  "webllm": "0.2.88",
+  "libsRepoCommit": "5b7251f3bdce957be2a7bf73a6f6c560d9874df4",
+  "models": {
+    "gemma3-1b-it-q4f16_1-MLC": {
+      "hfRepo": "mlc-ai/gemma3-1b-it-q4f16_1-MLC",
+      "hfCommit": "0f6103ed635931ff91a95db543365f0a77cbfb7d",
+      "model": "https://huggingface.co/mlc-ai/gemma3-1b-it-q4f16_1-MLC/resolve/0f6103ed635931ff91a95db543365f0a77cbfb7d/",
+      "model_lib": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/5b7251f3bdce957be2a7bf73a6f6c560d9874df4/web-llm-models/v0_2_87/base/gemma3-1b-it-q4f16_1_cs512-webgpu.wasm",
+      "integrity": {
+        "config": "sha256-AvtRgPe0AMZaqV1jdXMLVx073IuP9YkBCEy5yNoYt6I=",
+        "model_lib": "sha256-K1H07Rg5+3ZslkLBG+3Yarh7MBYDAPAyQr5uWwBCxJ0=",
+        "tokenizer": {
+          "tokenizer.json": "sha256-RmfyCJUp6OdlfPttHBmRCucf9fKKp6sv8nYzMK/615U=",
+          "tokenizer_config.json": "sha256-v+JcJzXjlUB763hFbqmmmEofANjBb6BKi3XyphTPU+E=",
+          "tokenizer.model": "sha256-EpnBHXz2Mu87ThGTdQE1itoCG733xHY40TwO6YLy55w="
+        },
+        "onFailure": "error"
+      },
+      "downloadMB": 609,
+      "vramMB": 711,
+      "requiredFeatures": []
+    },
+    "Qwen2.5-1.5B-Instruct-q4f16_1-MLC": {
+      "hfRepo": "mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+      "hfCommit": "9bd564b064631febf14deadcac492efb761d60c3",
+      "model": "https://huggingface.co/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC/resolve/9bd564b064631febf14deadcac492efb761d60c3/",
+      "model_lib": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/5b7251f3bdce957be2a7bf73a6f6c560d9874df4/web-llm-models/v0_2_87/base/Qwen2-1.5B-Instruct-q4f16_1_cs1k-webgpu.wasm",
+      "integrity": {
+        "config": "sha256-faSVQhLT8hqRzD5pPRefYyE/1XNWeWhH9l1/lUeKH54=",
+        "model_lib": "sha256-FV73NZyFn31kb0xa3FSNd5R12j4xlnAcep1LgoJ1Wag=",
+        "tokenizer": {
+          "tokenizer.json": "sha256-wDghF+oynN8JcEETL21zWSS2l5JNb2/DlFcT6WzodTk=",
+          "tokenizer_config.json": "sha256-UhRgDuRcoviHzi7t6JEDeKARHqmdZXQovLzpR3jmWpI="
+        },
+        "onFailure": "error"
+      },
+      "downloadMB": 887,
+      "vramMB": 1630,
+      "requiredFeatures": []
+    }
+  }
+}

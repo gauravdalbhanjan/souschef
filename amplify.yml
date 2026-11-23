@@ -1,0 +1,21 @@
+# AWS Amplify Hosting build settings (static site; same build as Vercel).
+# Security headers come from customHttp.yml (generated from vercel.json).
+# Note: api/ (Vercel function) is not used by the app and doesn't run on Amplify.
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 22
+        - nvm use 22
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*

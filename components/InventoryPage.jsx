@@ -14,6 +14,8 @@ import GoBackButton     from './GoBackButton'
 import { C, glass, T, PAD } from '../theme'
 import { api } from '../api'
 import { surface } from './Ambient'
+import CartButton from './CartButton'
+import SafeImg from './SafeImg'
 import { loadRoutines, applyRoutineNeeds, missingForRoutines } from '../lib/routines.js'
 
 const CATEGORY_ORDER = ['Veggies', 'Fruits', 'Meat', 'Dairy', 'Staples', 'Spices', 'Other']
@@ -44,7 +46,7 @@ const roundQty = (n) => Math.round(n * 100) / 100
 // One inventory row: thumb · name + (qty, dishes, days left, Edit) · Add to cart.
 // Running-low items (see decoratePantry in api.js) get a red indicator + reason
 // and a yellow "Add to cart". Edit opens an inline stepper to fix the amount.
-function Row({ item, inCart, onAdd, editing, onEdit, onCancel, onSave }) {
+function Row({ item, inCart, onAdd, editing, onEdit, onCancel, onSave, onStillGood }) {
   const low = item.lowStock
   const step = stepFor(item.unit)
   const [qty, setQty] = useState(String(roundQty(Number(item.quantity) || 0)))
@@ -64,9 +66,7 @@ function Row({ item, inCart, onAdd, editing, onEdit, onCancel, onSave }) {
     <Box sx={{ py: `${PAD * 1.25}px`, px: `${PAD * 1.5}px`, borderBottom: '1px solid rgba(var(--ink),.06)', '&:last-child': { borderBottom: 'none' } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: `${PAD * 1.25}px` }}>
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
-          {item.image
-            ? <Box component="img" src={item.image} alt="" sx={{ width: 46, height: 46, borderRadius: '12px', objectFit: 'cover', display: 'block' }} />
-            : <Box sx={{ width: 46, height: 46, borderRadius: '12px', background: 'var(--surface-strong)', border: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)', fontSize: `${T.title}px`, fontWeight: 700 }}>{item.display?.[0]}</Box>}
+          <SafeImg src={item.image} sx={{ width: 46, height: 46, borderRadius: '12px', objectFit: 'cover', display: 'block' }} fallback={<Box sx={{ width: 46, height: 46, borderRadius: '12px', background: 'var(--surface-strong)', border: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)', fontSize: `${T.title}px`, fontWeight: 700 }}>{item.display?.[0]}</Box>} />
           {low && (
             <Box aria-hidden sx={{ position: 'absolute', top: -3, right: -3, width: 12, height: 12, borderRadius: '50%', background: RED, border: '2px solid var(--canvas-base)' }} />
           )}
@@ -93,7 +93,16 @@ function Row({ item, inCart, onAdd, editing, onEdit, onCancel, onSave }) {
               <Typography sx={{ ...metaSx, color: RED, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 <Box component="span" sx={visuallyHidden}>Running low: </Box>{item.lowReason}
               </Typography>
-            ) : (
+            ) : null}
+            {item.pastShelfLife ? (
+              <Box component="button" type="button" onClick={() => onStillGood(item)} aria-label={`${item.display} is still good`}
+                title="Shelf life is an estimate from the purchase date"
+                sx={{ all: 'unset', cursor: 'pointer', flexShrink: 0, display: 'inline-flex', alignItems: 'center', height: 24, px: '8px', borderRadius: '12px',
+                  background: 'var(--surface-strong)', border: '1px solid var(--surface-border)', color: 'var(--fg)', fontSize: `${T.chip}px`, fontWeight: 700,
+                  '&:hover': { background: 'var(--surface-hover)' }, '&:focus-visible': { outline: '2px solid var(--accent)', outlineOffset: 2 } }}>
+                Past est. date · still good?
+              </Box>
+            ) : low ? null : (
               <>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                   <SyncIcon sx={{ fontSize: 13, opacity: 0.8 }} />
@@ -346,9 +355,7 @@ export default function InventoryPage({ onBack, onAddGroceries, onViewCart, rout
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `${PAD}px`, mt: `${PAD}px` }}>
           <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px` }}>Pantry</Typography>
           {/* Cart only: the Scan button in the tab bar handles receipts. */}
-          <IconButton onClick={onViewCart} aria-label="View cart" sx={{ ...glass('neutral', { radius: 44, blur: 12, a: 0.08 }), color: 'var(--fg)', width: 34, height: 34, my: '-1px' }}>
-            <ShoppingCartIcon sx={{ fontSize: 18 }} />
-          </IconButton>
+          <CartButton onClick={onViewCart} />
         </Box>
         <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>
           {items.length} items{lowCount ? <Box component="span" sx={{ color: RED, fontWeight: 700 }}> · {lowCount} running low</Box> : ''}
@@ -433,7 +440,8 @@ export default function InventoryPage({ onBack, onAddGroceries, onViewCart, rout
           <Box sx={{ ...surface, overflow: 'hidden' }}>
             {rows.map(it => (
               <Row key={it.id} item={it} inCart={cartKeys.has(it.canonical)} onAdd={addToCart}
-                editing={editingId === it.id} onEdit={() => setEditingId(it.id)} onCancel={() => setEditingId(null)} onSave={saveQty} />
+                editing={editingId === it.id} onEdit={() => setEditingId(it.id)} onCancel={() => setEditingId(null)} onSave={saveQty}
+                onStillGood={async (row) => { await api.markPantryChecked(row.id); setSnack(`${row.display} marked as still good`); load() }} />
             ))}
           </Box>
         )}

@@ -1,68 +1,67 @@
-// SousChef data layer, backed directly by Supabase (Postgres + Auth + RLS).
+// SousChef data layer: everything lives on this device (IndexedDB via
+// lib/deviceStore.js). No account, no server, no Supabase.
 //
-// There is no custom server: every user-owned table has Row Level Security, so
-// the browser can read/write only its own rows. The matching engine, receipt
-// parsing and OCR run in the browser (see ./lib). The function names mirror the
-// old REST client so the screens did not need to change.
-import { supabase } from './supabaseClient'
+// The exported `api` keeps the same function names the screens already use,
+// so the UI didn't have to change. Matching, receipt parsing and OCR run in
+// the browser (see ./lib).
 import { rankRecipes } from './lib/match.js'
 import { toBase, canonicalOf, categoryOf, shelfLifeDays } from './lib/normalize.js'
 import { parseReceiptText } from './lib/receiptParser.js'
 import { parseEmailReceipt } from './lib/emailParser.js'
-import { ocrImage } from './lib/ocr.js'
+import { ocrImageDetailed } from './lib/ocr.js'
 import { localCatalog } from './lib/localCatalog.js'
 import { metaFor } from './lib/recipeMeta.js'
-import { stepsFor, hasWrittenSteps } from './lib/steps.js'
 import { applyStaples, catalogStaples } from './lib/staples.js'
-
-function must({ data, error }) {
-  if (error) throw new Error(error.message)
-  return data
-}
+import { read, write, nextId } from './lib/deviceStore.js'
+import { notifyCart } from './lib/cartStore.js'
+import { loadDataset, datasetLoaded, datasetSteps, datasetTemps, DATASET_META, MIN_MATCH, MAX_SHOWN } from './lib/dataset.js'
+import { canonicalFor } from './lib/ingredientName.js'
+import { CATALOG_CUISINE } from './lib/guardrails/filter.js'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-// ── Catalog (shared, read-only, cached for the session) ─────────────────────
-let catalogPromise = null
-function loadCatalog() {
-  if (!catalogPromise) {
-    catalogPromise = (async () => {
-      const [r, i] = await Promise.all([
-        supabase.from('recipes').select('*'),
-        supabase.from('recipe_ingredients').select('*'),
-      ])
-      const recipes = must(r)
-      const byRecipe = new Map()
-      for (const ing of must(i)) {
-        if (!byRecipe.has(ing.recipe_id)) byRecipe.set(ing.recipe_id, [])
-        byRecipe.get(ing.recipe_id).push(ing)
-      }
-      if (!recipes.length) {
-        throw new Error('Recipe catalog is empty. Run supabase/seed_recipes.sql in the Supabase SQL editor.')
-      }
-      return { recipes, byRecipe }
-    })().catch(err => { catalogPromise = null; throw err })
-  }
-  return catalogPromise
+// ── Catalog: the 16 bundled recipes ─────────────────────────────────────────
+// On-device AI is off in this app (lib/features.js), so AI recipes saved by an
+// earlier build are not part of the catalog.
+export function fullCatalog() {
+  return localCatalog()
 }
 
+// Catalog + the open recipe dataset (when loaded). Used for suggestions,
+// recipe pages and cooking; NOT for pantry warnings, which stay tied to the
+// bundled catalog so thousands of recipes don't change "meals left".
+export function catalogWithDataset() {
+  const base = fullCatalog()
+  const ds = datasetLoaded()
+  if (!ds) return base
+  const byRecipe = new Map(base.byRecipe)
+  for (const [id, ings] of ds.byRecipe) byRecipe.set(id, ings)
+  return { recipes: [...base.recipes, ...ds.recipes], byRecipe }
+}
+const hasPantry = () => read('pantry').some(p => Number(p.quantity) > 0)
+// Every recipe the app can show: bundled + the dataset's count (known without
+// downloading it, from lib/data/datasetMeta.json).
+export const recipeTotal = () => localCatalog().recipes.length + (datasetLoaded()?.recipes.length ?? DATASET_META.count)
+// Dataset recipes compare names via canonicalFor (see lib/ingredientName.js).
+const nameFor = (recipe, canonical) => (recipe?.dataset ? canonicalFor(canonical) || canonical : canonical)
+
 // ── Pantry helpers ──────────────────────────────────────────────────────────
-// Adds dishCount ("N Dishes"), daysLeft (shelf life minus days since purchase),
-// mealsLeft and a lowStock flag + reason.
+// Adds dishCount ("N Dishes"), daysLeft (estimated shelf life minus days since
+// purchase), mealsLeft and a lowStock flag + reason.
 //
 // Running low when ANY of:
 //   • out of stock (quantity 0),
-//   • expiring within 3 days (it will be gone soon either way), or
-//   • not enough left for 2 more servings of the hungriest recipe that uses it
-//     (e.g. 50 g chicken when Chicken Strips needs 175 g per serving).
-// Items no recipe uses only count as low when out or expiring.
-const LOW_DAYS = 3
+//   • expiring within 3 days, or
+//   • not enough left for 2 more servings of the hungriest recipe that uses it.
+// Past its estimated shelf life -> pastShelfLife: "check before using" (the user
+// can mark it OK; shelf life is only an estimate from the purchase date).
+export const LOW_DAYS = 3
 const LOW_MEALS = 2
 
-function decoratePantry(rows, byRecipe, recipes = []) {
+export function decoratePantry(rows, byRecipe, recipes = [], now = Date.now()) {
   const servings = new Map(recipes.map(r => [r.id, r.servings || 1]))
   const dishes = new Map()
-  const perServing = new Map() // canonical -> { base, amount } largest single-serving need
+  const perServing = new Map()
   for (const [recipeId, ings] of byRecipe) {
     const s = servings.get(recipeId) || 1
     for (const c of new Set(ings.map(x => x.canonical))) dishes.set(c, (dishes.get(c) || 0) + 1)
@@ -74,14 +73,16 @@ function decoratePantry(rows, byRecipe, recipes = []) {
     }
   }
 
-  const now = Date.now()
   return rows.map(row => {
     const shelf = shelfLifeDays(row.canonical)
     let daysLeft = shelf
+    let elapsed = 0
     if (row.purchased) {
-      const elapsed = Math.floor((now - new Date(row.purchased).getTime()) / 86400000)
-      daysLeft = Math.max(0, shelf - (Number.isNaN(elapsed) ? 0 : elapsed))
+      elapsed = Math.floor((now - new Date(row.purchased).getTime()) / 86400000)
+      if (Number.isNaN(elapsed)) elapsed = 0
+      daysLeft = Math.max(0, shelf - elapsed)
     }
+    const pastShelfLife = !!row.purchased && elapsed > shelf && !row.checkOk
     const dishCount = dishes.get(row.canonical) || 0
 
     let mealsLeft = null
@@ -89,106 +90,74 @@ function decoratePantry(rows, byRecipe, recipes = []) {
     const stock = toBase(row.quantity, row.unit)
     if (need && need.amount > 0 && need.base === stock.base) mealsLeft = Math.floor(stock.amount / need.amount)
 
+    // Warnings follow the QUANTITY: out, under a quarter of what was bought, or
+    // not enough for 2 more meals. Shelf life is shown as information only.
     let lowReason = null
-    if (Number(row.quantity) <= 0) lowReason = 'Out of stock'
-    else if (daysLeft <= LOW_DAYS) lowReason = daysLeft === 0 ? 'Expires today' : `Expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+    const q = Number(row.quantity)
+    const bought = Number(row.boughtQty) || 0
+    if (q <= 0) lowReason = 'Out of stock'
+    else if (bought > 0 && q <= bought * 0.25) lowReason = `Running low: ${Math.round((q / bought) * 100)}% left`
     else if (mealsLeft != null && mealsLeft < LOW_MEALS) lowReason = mealsLeft === 0 ? 'Not enough for a meal' : 'Enough for 1 meal'
 
-    return { ...row, dishCount, daysLeft, shelfLife: shelf, mealsLeft, lowStock: !!lowReason, lowReason }
+    return { ...row, dishCount, daysLeft, shelfLife: shelf, mealsLeft, pastShelfLife, lowStock: !!lowReason, lowReason }
   })
 }
 
 const sameKey = (a, b) =>
   a.canonical === b.canonical && a.unit === b.unit && (a.brand || null) === (b.brand || null)
 
-async function listPantryRaw() {
-  return must(await supabase.from('pantry').select('*').order('category').order('display'))
-}
-
-// Merge items into the pantry: add to an existing row for the same item, else insert.
-async function commitPantry(items) {
-  const batch = []
+function mergePantry(items) {
+  const pantry = read('pantry')
+  let n = 0
   for (const it of items) {
     const canonical = it.canonical || canonicalOf(it.display)
     if (!canonical) continue
-    const category = it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other')
     const row = {
       canonical,
-      display: it.display || canonical,
-      category,
-      quantity: Number(it.quantity) || 1,
+      display: String(it.display || canonical).slice(0, 80),
+      category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
+      quantity: Math.max(0, Number(it.quantity) || 1),
       unit: it.unit || 'unit',
-      brand: it.brand || null,
+      brand: it.brand ? String(it.brand).slice(0, 60) : null,
       purchased: it.purchased || today(),
       image: it.image || null,
     }
-    const dup = batch.find(b => sameKey(b, row))
-    if (dup) dup.quantity += row.quantity
-    else batch.push(row)
+    const hit = pantry.find(p => sameKey(p, row))
+    if (hit) { hit.quantity = Number(hit.quantity) + row.quantity; hit.boughtQty = hit.quantity; hit.purchased = row.purchased; hit.checkOk = false }
+    else pantry.push({ id: nextId(), ...row, boughtQty: row.quantity })
+    n++
   }
-  if (!batch.length) return 0
-
-  const existing = must(await supabase.from('pantry').select('*').in('canonical', batch.map(b => b.canonical)))
-  const inserts = []
-  const updates = []
-  for (const row of batch) {
-    const hit = existing.find(e => sameKey(e, row))
-    if (hit) updates.push(supabase.from('pantry').update({ quantity: Number(hit.quantity) + row.quantity, purchased: row.purchased }).eq('id', hit.id))
-    else inserts.push(row)
-  }
-  if (inserts.length) must(await supabase.from('pantry').insert(inserts))
-  for (const res of await Promise.all(updates)) must(res)
-  return batch.length
+  write('pantry', pantry)
+  return n
 }
 
-// Keep a copy of each parsed receipt. Best-effort: a logging failure must never
-// block the user from reviewing what was scanned.
-async function logReceipt(source, rawText, items) {
-  const { data, error } = await supabase
-    .from('receipts').insert({ source, raw_text: rawText, items }).select('id').single()
-  if (error) { console.warn('receipt log skipped:', error.message); return null }
-  return data.id
-}
-
-// ── Cart helpers ────────────────────────────────────────────────────────────
-async function listCart() {
-  return must(await supabase.from('cart').select('*').order('created_at', { ascending: false }))
-}
-
-async function addCart(items) {
-  const rows = []
+function addCart(items) {
+  const cart = read('cart')
+  let n = 0
   for (const it of items) {
     const canonical = it.canonical || canonicalOf(it.display)
     if (!canonical) continue
-    const row = {
-      canonical,
-      display: it.display || canonical,
-      quantity: Number(it.quantity) || 1,
-      unit: it.unit || 'unit',
-      category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
-      source: it.source || null,
+    const unit = it.unit || 'unit'
+    const qty = Math.max(0, Number(it.quantity) || 1)
+    const hit = cart.find(c => c.canonical === canonical && c.unit === unit)
+    if (hit) hit.quantity = Number(hit.quantity) + qty
+    else {
+      cart.unshift({
+        id: nextId(), canonical, display: String(it.display || canonical).slice(0, 80), quantity: qty, unit,
+        category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
+        source: it.source || null,
+      })
     }
-    const dup = rows.find(r => r.canonical === row.canonical && r.unit === row.unit)
-    if (dup) dup.quantity += row.quantity
-    else rows.push(row)
+    n++
   }
-  if (!rows.length) return 0
-
-  const existing = must(await supabase.from('cart').select('*').in('canonical', rows.map(r => r.canonical)))
-  const inserts = []
-  const updates = []
-  for (const row of rows) {
-    const hit = existing.find(e => e.canonical === row.canonical && e.unit === row.unit)
-    if (hit) updates.push(supabase.from('cart').update({ quantity: Number(hit.quantity) + row.quantity }).eq('id', hit.id))
-    else inserts.push(row)
-  }
-  if (inserts.length) must(await supabase.from('cart').insert(inserts))
-  for (const res of await Promise.all(updates)) must(res)
-  return rows.length
+  write('cart', cart)
+  return n
 }
 
-// Deep links into delivery services. A true "push my cart into Instacart" needs
-// a partner API key (secret), which cannot live in the browser; see README.
+const sortedPantry = () =>
+  [...read('pantry')].sort((a, b) => a.category.localeCompare(b.category) || a.display.localeCompare(b.display))
+
+// Deep links into delivery services (search links, not pre-filled carts).
 function buildHandoff(items) {
   const first = encodeURIComponent(items[0]?.display || '')
   const all = encodeURIComponent(items.map(i => i.display).join(' '))
@@ -207,285 +176,159 @@ function shapeSuggestion(r) {
   const meta = metaFor(r.slug)
   return {
     id: r.id, slug: r.slug, name: r.name,
-    img: meta.image || r.image, imageCredit: meta.imageCredit,
-    categories: meta.categories || [], protein: meta.protein, proteinG: meta.proteinG,
+    img: r.ai ? (r.ai.photo?.thumb || null) : r.dataset ? null : (meta.image || r.image), imageCredit: r.ai || r.dataset ? null : meta.imageCredit,
+    primary: r.primary || null, dataset: r.dataset || null, timeEstimated: !!r.timeEstimated, dishType: r.dishType || null,
+    photo: r.ai?.photo || null,
+    categories: r.ai ? (r.ai.categories || []) : r.dataset ? r.categories : (meta.categories || []), protein: r.ai ? r.ai.protein : r.dataset ? r.protein : meta.protein, proteinG: meta.proteinG, highProtein: !!r.highProtein,
     time: `${r.time_mins} mins`, time_mins: r.time_mins,
-    kcal: `${r.kcal} kcal`, servings: r.servings,
-    match: r.match, matchColor: r.matchColor, haveAll: r.haveAll,
+    kcal: r.kcal != null ? `${r.kcal} kcal` : null, kcalValue: r.kcal ?? null, servings: r.servings,
+    match: r.match, matchColor: r.matchColor, haveAll: r.haveAll, relevant: r.relevant !== false, coreMissing: r.coreMissing || [],
     missing: r.missing, maxServings: r.maxServings, description: r.description,
+    ai: r.ai || null, cuisine: r.ai?.cuisine || r.cuisine || meta.cuisine || CATALOG_CUISINE[r.slug] || null,
   }
 }
 
-// Signed-in users: everything persists in Supabase.
-const cloudApi = {
+const pantryRows = () => read('pantry')
+
+// slug -> ingredients (with the user's staples applied), for filters and allergy checks.
+export function ingredientsBySlug() {
+  const { recipes, byRecipe } = catalogWithDataset()
+  const b = applyStaples(byRecipe)
+  return new Map(recipes.map(r => [r.slug, b.get(r.id) || []]))
+}
+
+export const api = {
   // ── suggestions & recipes ─────────────────────────────────────────────────
+  // Bundled + saved recipes always; dataset recipes only once the pantry has
+  // items, and only the ones close to it (the dataset loads on first use).
   async suggestions() {
-    const [{ recipes, byRecipe: base }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
-    return rankRecipes(recipes, applyStaples(base), pantry).map(shapeSuggestion)
+    const base = fullCatalog()
+    const ranked = rankRecipes(base.recipes, applyStaples(base.byRecipe), pantryRows())
+    if (!hasPantry()) return ranked.map(shapeSuggestion)
+    const ds = await loadDataset()
+    if (!ds) return ranked.map(shapeSuggestion)
+    // Pantry names reduced the same way as the dataset's (lib/ingredientName.js).
+    const rows = pantryRows().map(p => ({ ...p, canonical: canonicalFor(p.canonical) || p.canonical }))
+    const byRecipe = applyStaples(ds.byRecipe)
+    // Real dishes first: at least 3 non-staple ingredients (skips sauces and
+    // basics like "mayonnaise"), then ready-to-cook, closest match, fuller dish.
+    const main = (r) => (byRecipe.get(r.id) || []).filter(i => !i.staple && !i.optional).length
+    const near = rankRecipes(ds.recipes.filter(r => main(r) >= 3), byRecipe, rows)
+      .filter(r => r.relevant && (r.haveAll || r.match >= MIN_MATCH))
+      .sort((a, b) => (b.haveAll - a.haveAll) || (b.match - a.match) || (main(b) - main(a)))
+      .slice(0, MAX_SHOWN)
+    return [...ranked, ...near].map(shapeSuggestion)
+  },
+
+  // The full list for "Browse all": bundled + every dataset recipe, ranked by
+  // the pantry (has-core-protein first). Loads the dataset on first use.
+  async allRecipes() {
+    const base = fullCatalog()
+    const ds = await loadDataset()
+    const rows = pantryRows()
+    const out = rankRecipes(base.recipes, applyStaples(base.byRecipe), rows)
+    // Full dishes (3+ non-staple ingredients) before sauces and basics.
+    const mains = new Map()
+    const count = (by) => { for (const [id, ings] of by) mains.set(id, ings.filter(i => !i.staple && !i.optional).length >= 3) }
+    count(base.byRecipe)
+    if (ds) count(ds.byRecipe)
+    if (ds) {
+      const dsRows = rows.map(p => ({ ...p, canonical: canonicalFor(p.canonical) || p.canonical }))
+      out.push(...rankRecipes(ds.recipes, applyStaples(ds.byRecipe), dsRows))
+    }
+    // One ranking across both sources (same order rules as rankRecipes).
+    out.sort((a, b) => (b.haveAll - a.haveAll) || (b.relevant - a.relevant) || (mains.get(b.id) - mains.get(a.id)) || (b.match - a.match) || (a.missing.length - b.missing.length) || (a.time_mins - b.time_mins))
+    return out.map(shapeSuggestion)
   },
 
   async recipe(slug) {
-    const [{ recipes, byRecipe: base }, pantry] = await Promise.all([loadCatalog(), listPantryRaw()])
+    if (slug?.startsWith('wb-')) await loadDataset()
+    const { recipes, byRecipe: base } = catalogWithDataset()
     const byRecipe = applyStaples(base)
     const recipe = recipes.find(r => r.slug === slug)
     if (!recipe) throw new Error('Recipe not found')
-    const scored = rankRecipes([recipe], byRecipe, pantry)[0]
+    const scored = rankRecipes([recipe], byRecipe, pantryRows().map(p => ({ ...p, canonical: nameFor(recipe, p.canonical) })))[0]
     const ingredients = (byRecipe.get(recipe.id) || []).map(ing => {
       const missing = scored.missing.find(m => m.canonical === ing.canonical)
       return {
         canonical: ing.canonical, display: ing.display, quantity: ing.quantity, unit: ing.unit,
-        staple: !!ing.staple, have: ing.staple ? true : !missing,
+        staple: !!ing.staple, have: ing.staple ? true : !missing, srcId: ing.srcId || null, brand: ing.brand || null,
       }
     })
-    // Prefer the bundled, detailed steps so the cloud matches the app build
-    // even before the seed is re-run.
-    const steps = hasWrittenSteps(slug)
-      ? stepsFor(slug, recipe.name, byRecipe.get(recipe.id) || [])
-      : (recipe.steps || [])
-    return {
-      ...shapeSuggestion(scored),
-      steps,
-      ingredients,
-    }
+    const ds = recipe.dataset ? byRecipe.get(recipe.id) || [] : null
+    const steps = ds ? datasetSteps(recipe, ds) : (recipe.steps || [])
+    return { ...shapeSuggestion(scored), steps, ingredients, ...(ds ? { temps: datasetTemps(ds) } : {}) }
   },
 
   // ── pantry ────────────────────────────────────────────────────────────────
-  async pantry() {
-    const [{ recipes, byRecipe }, rows] = await Promise.all([loadCatalog().catch(() => localCatalog()), listPantryRaw()])
-    return decoratePantry(rows, applyStaples(byRecipe), recipes)
-  },
-  // Assumed staples + any tracked amount (a regular pantry row).
+  async pantry() { const { recipes, byRecipe } = fullCatalog(); return decoratePantry(sortedPantry(), applyStaples(byRecipe), recipes) },
   async staples() {
-    const [{ recipes, byRecipe }, rows] = await Promise.all([loadCatalog().catch(() => localCatalog()), listPantryRaw()])
+    const { recipes, byRecipe } = localCatalog()
+    const rows = pantryRows()
     return catalogStaples(recipes, byRecipe).map(st => ({ ...st, tracked: rows.find(r => r.canonical === st.canonical) || null }))
   },
-  addPantry: (item) => commitPantry([item]),
-  async updatePantry(id, quantity) { must(await supabase.from('pantry').update({ quantity: Number(quantity) }).eq('id', id)) },
-  async deletePantry(id) { must(await supabase.from('pantry').delete().eq('id', id)) },
-  async commit(items, receiptId) {
-    const n = await commitPantry(items)
-    if (receiptId) await supabase.from('receipts').update({ committed: true }).eq('id', receiptId)
-    return { committed: n }
+  async addPantry(item) { return mergePantry([item]) },
+  async updatePantry(id, quantity) {
+    const pantry = read('pantry')
+    const row = pantry.find(p => p.id === id)
+    if (row) { row.quantity = Math.max(0, Number(quantity) || 0); if (row.quantity > (Number(row.boughtQty) || 0)) row.boughtQty = row.quantity; write('pantry', pantry) }
   },
+  // "This is still good": override the estimated shelf life for one item.
+  async markPantryChecked(id) {
+    const pantry = read('pantry')
+    const row = pantry.find(p => p.id === id)
+    if (row) { row.checkOk = true; write('pantry', pantry) }
+  },
+  async deletePantry(id) { write('pantry', read('pantry').filter(p => p.id !== id)) },
+  async commit(items) { return { committed: mergePantry(items) } },
 
   // ── ingestion (parsing runs in the browser) ───────────────────────────────
   async scanReceipt(file, onProgress) {
-    const text = await ocrImage(file, onProgress)
+    const { text, confidence, lines } = await ocrImageDetailed(file, onProgress)
     const { date, items } = parseReceiptText(text)
-    const receiptId = await logReceipt('photo', text, items)
-    return { receiptId, source: 'photo', date, rawText: text, items }
+    return { receiptId: null, source: 'photo', date, rawText: text, items, lines, confidence }
   },
   async parseReceiptText(text) {
     const { date, items } = parseReceiptText(text)
-    const receiptId = await logReceipt('text', text, items)
-    return { receiptId, source: 'text', date, items }
+    return { receiptId: null, source: 'text', date, rawText: text, items }
   },
   async parseEmail(text) {
     const { vendor, date, items } = parseEmailReceipt(text)
-    const receiptId = await logReceipt(`email:${vendor}`, text, items)
-    return { receiptId, source: `email:${vendor}`, vendor, date, items }
+    return { receiptId: null, source: `email:${vendor}`, vendor, date, rawText: text, items }
   },
 
   // ── cooking (with pantry depletion) ───────────────────────────────────────
   async startCook(slug, servings) {
-    const { recipes } = await loadCatalog()
-    const recipe = recipes.find(r => r.slug === slug)
+    const recipe = catalogWithDataset().recipes.find(r => r.slug === slug)
     if (!recipe) throw new Error('Recipe not found')
     const s = Number(servings) || recipe.servings || 1
-    const row = must(await supabase.from('cooking_sessions').insert({ recipe_id: recipe.id, servings: s }).select('id').single())
-    return { sessionId: row.id, recipeId: recipe.id, servings: s }
-  },
-
-  // Subtract the recipe's scaled ingredient amounts from the pantry so the next
-  // session's suggestions and "enough for N" reflect what is left.
-  async completeCook(sessionId) {
-    const session = must(await supabase.from('cooking_sessions').select('*').eq('id', sessionId).single())
-    if (session.status === 'completed') return { alreadyCompleted: true }
-
-    const { recipes, byRecipe } = await loadCatalog()
-    const recipe = recipes.find(r => r.id === session.recipe_id)
-    const ings = byRecipe.get(session.recipe_id) || []
-    const pantry = await listPantryRaw()
-    const scale = session.servings / (recipe.servings || 1)
-
-    const depletion = []
-    const newQty = new Map()
-    for (const ing of ings) {
-      const need = toBase(ing.quantity * scale, ing.unit)
-      if (need.amount <= 0) continue
-      const rows = pantry.filter(p => p.canonical === ing.canonical).sort((a, b) => b.quantity - a.quantity)
-      let remaining = need.amount
-      for (const row of rows) {
-        if (remaining <= 0) break
-        const stock = toBase(row.quantity, row.unit)
-        if (stock.base !== need.base) continue // never compare mass to volume
-        const take = Math.min(stock.amount, remaining)
-        const perUnit = toBase(1, row.unit).amount || 1
-        const qty = Math.max(0, +((stock.amount - take) / perUnit).toFixed(3))
-        row.quantity = qty
-        newQty.set(row.id, qty)
-        depletion.push({ pantryId: row.id, canonical: ing.canonical, took: +(take / perUnit).toFixed(3), unit: row.unit })
-        remaining -= take
-      }
-    }
-
-    const results = await Promise.all([...newQty].map(([id, quantity]) => supabase.from('pantry').update({ quantity }).eq('id', id)))
-    results.forEach(must)
-    must(await supabase.from('cooking_sessions').update({ status: 'completed', completed_at: new Date().toISOString(), depletion }).eq('id', sessionId))
-    return { completed: true, depletion }
-  },
-
-  // ── cart + grocery handoff ────────────────────────────────────────────────
-  cart: listCart,
-  async addToCart(items) {
-    const added = await addCart(items)
-    return { added, items: await listCart() }
-  },
-  async removeFromCart(id) { must(await supabase.from('cart').delete().eq('id', id)) },
-  async clearCart() { must(await supabase.from('cart').delete().neq('id', -1)) },
-  async checkout() { return buildHandoff(await listCart()) },
-}
-
-// ── Guest sessions: no account, nothing stored ──────────────────────────────
-// Pantry, cart and cooking state live only in memory for this tab. Nothing is
-// sent to Supabase; a refresh or "Exit guest" wipes it. Suggestions are computed
-// on the device from the bundled recipe catalog.
-let guestMode = false
-let mem = null
-let nextId = 1
-
-function freshMemory() {
-  return { pantry: [], cart: [], sessions: new Map() }
-}
-
-export function setGuestMode(on) {
-  guestMode = on
-  mem = on ? freshMemory() : null
-}
-export const isGuestMode = () => guestMode
-
-function memMergePantry(items) {
-  let n = 0
-  for (const it of items) {
-    const canonical = it.canonical || canonicalOf(it.display)
-    if (!canonical) continue
-    const row = {
-      canonical,
-      display: it.display || canonical,
-      category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
-      quantity: Number(it.quantity) || 1,
-      unit: it.unit || 'unit',
-      brand: it.brand || null,
-      purchased: it.purchased || today(),
-      image: it.image || null,
-    }
-    const hit = mem.pantry.find(p => sameKey(p, row))
-    if (hit) hit.quantity = Number(hit.quantity) + row.quantity
-    else mem.pantry.push({ id: nextId++, ...row })
-    n++
-  }
-  return n
-}
-
-function memAddCart(items) {
-  let n = 0
-  for (const it of items) {
-    const canonical = it.canonical || canonicalOf(it.display)
-    if (!canonical) continue
-    const unit = it.unit || 'unit'
-    const qty = Number(it.quantity) || 1
-    const hit = mem.cart.find(c => c.canonical === canonical && c.unit === unit)
-    if (hit) hit.quantity = Number(hit.quantity) + qty
-    else {
-      mem.cart.unshift({
-        id: nextId++, canonical, display: it.display || canonical, quantity: qty, unit,
-        category: it.category && it.category !== 'Other' ? it.category : (categoryOf(it.display) || 'Other'),
-        source: it.source || null,
-      })
-    }
-    n++
-  }
-  return n
-}
-
-const sortedPantry = () =>
-  [...mem.pantry].sort((a, b) => a.category.localeCompare(b.category) || a.display.localeCompare(b.display))
-
-const guestApi = {
-  async suggestions() {
-    const { recipes, byRecipe } = localCatalog()
-    return rankRecipes(recipes, applyStaples(byRecipe), mem.pantry).map(shapeSuggestion)
-  },
-
-  async recipe(slug) {
-    const { recipes, byRecipe: base } = localCatalog()
-    const byRecipe = applyStaples(base)
-    const recipe = recipes.find(r => r.slug === slug)
-    if (!recipe) throw new Error('Recipe not found')
-    const scored = rankRecipes([recipe], byRecipe, mem.pantry)[0]
-    const ingredients = (byRecipe.get(recipe.id) || []).map(ing => {
-      const missing = scored.missing.find(m => m.canonical === ing.canonical)
-      return {
-        canonical: ing.canonical, display: ing.display, quantity: ing.quantity, unit: ing.unit,
-        staple: !!ing.staple, have: ing.staple ? true : !missing,
-      }
-    })
-    return { ...shapeSuggestion(scored), steps: recipe.steps || [], ingredients }
-  },
-
-  async pantry() { const { recipes, byRecipe } = localCatalog(); return decoratePantry(sortedPantry(), applyStaples(byRecipe), recipes) },
-  async staples() {
-    const { recipes, byRecipe } = localCatalog()
-    return catalogStaples(recipes, byRecipe).map(st => ({ ...st, tracked: mem.pantry.find(r => r.canonical === st.canonical) || null }))
-  },
-  async addPantry(item) { return memMergePantry([item]) },
-  async updatePantry(id, quantity) {
-    const row = mem.pantry.find(p => p.id === id)
-    if (row) row.quantity = Number(quantity)
-  },
-  async deletePantry(id) { mem.pantry = mem.pantry.filter(p => p.id !== id) },
-  async commit(items) { return { committed: memMergePantry(items) } },
-
-  async scanReceipt(file, onProgress) {
-    const text = await ocrImage(file, onProgress)
-    const { date, items } = parseReceiptText(text)
-    return { receiptId: null, source: 'photo', date, rawText: text, items }
-  },
-  async parseReceiptText(text) {
-    const { date, items } = parseReceiptText(text)
-    return { receiptId: null, source: 'text', date, items }
-  },
-  async parseEmail(text) {
-    const { vendor, date, items } = parseEmailReceipt(text)
-    return { receiptId: null, source: `email:${vendor}`, vendor, date, items }
-  },
-
-  async startCook(slug, servings) {
-    const recipe = localCatalog().recipes.find(r => r.slug === slug)
-    if (!recipe) throw new Error('Recipe not found')
-    const s = Number(servings) || recipe.servings || 1
-    const sessionId = nextId++
-    mem.sessions.set(sessionId, { recipeId: recipe.id, servings: s, status: 'in_progress' })
+    const sessionId = nextId()
+    const sessions = read('sessions')
+    sessions[sessionId] = { slug, servings: s, status: 'in_progress' }
+    write('sessions', sessions)
     return { sessionId, recipeId: recipe.id, servings: s }
   },
 
   async completeCook(sessionId) {
-    const session = mem.sessions.get(sessionId)
+    const sessions = read('sessions')
+    const session = sessions[sessionId]
     if (!session) throw new Error('Cooking session not found')
     if (session.status === 'completed') return { alreadyCompleted: true }
-    const { recipes, byRecipe } = localCatalog()
-    const recipe = recipes.find(r => r.id === session.recipeId)
+    const { recipes, byRecipe } = catalogWithDataset()
+    const recipe = recipes.find(r => r.slug === session.slug)
+    if (!recipe) throw new Error('Recipe not found')
     const scale = session.servings / (recipe.servings || 1)
+    const pantry = read('pantry')
     const depletion = []
     for (const ing of byRecipe.get(recipe.id) || []) {
       const need = toBase(ing.quantity * scale, ing.unit)
       if (need.amount <= 0) continue
       let remaining = need.amount
-      const rows = mem.pantry.filter(p => p.canonical === ing.canonical).sort((a, b) => b.quantity - a.quantity)
+      const rows = pantry.filter(p => nameFor(recipe, p.canonical) === ing.canonical).sort((a, b) => b.quantity - a.quantity)
       for (const row of rows) {
         if (remaining <= 0) break
         const stock = toBase(row.quantity, row.unit)
-        if (stock.base !== need.base) continue
+        if (stock.base !== need.base) continue // never compare mass to volume
         const take = Math.min(stock.amount, remaining)
         const perUnit = toBase(1, row.unit).amount || 1
         row.quantity = Math.max(0, +((stock.amount - take) / perUnit).toFixed(3))
@@ -493,18 +336,16 @@ const guestApi = {
         remaining -= take
       }
     }
+    write('pantry', pantry)
     session.status = 'completed'
+    write('sessions', sessions)
     return { completed: true, depletion }
   },
 
-  async cart() { return [...mem.cart] },
-  async addToCart(items) { const added = memAddCart(items); return { added, items: [...mem.cart] } },
-  async removeFromCart(id) { mem.cart = mem.cart.filter(c => c.id !== id) },
-  async clearCart() { mem.cart = [] },
-  async checkout() { return buildHandoff(mem.cart) },
+  // ── cart + grocery handoff ────────────────────────────────────────────────
+  async cart() { return read('cart') },
+  async addToCart(items) { const added = addCart(items); notifyCart(added); return { added, items: read('cart') } },
+  async removeFromCart(id) { write('cart', read('cart').filter(c => c.id !== id)); notifyCart() },
+  async clearCart() { write('cart', []); notifyCart() },
+  async checkout() { return buildHandoff(read('cart')) },
 }
-
-// Screens import `api` and never need to know which mode is active.
-export const api = new Proxy({}, {
-  get: (_, key) => (guestMode ? guestApi : cloudApi)[key],
-})

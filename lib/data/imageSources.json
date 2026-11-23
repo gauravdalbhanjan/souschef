@@ -1,0 +1,207 @@
+{
+  "version": "2026-11-17",
+  "sources": [
+    {
+      "id": "pexels",
+      "name": "Pexels",
+      "search": "https://api.pexels.com/v1/search",
+      "auth": {
+        "type": "header",
+        "name": "Authorization",
+        "keyEnv": "PEXELS_API_KEY"
+      },
+      "params": {
+        "query": "query",
+        "perPage": "per_page (max 80)",
+        "orientation": "orientation=landscape|portrait|square"
+      },
+      "safeSearch": null,
+      "fields": {
+        "thumb": "src.medium",
+        "full": "src.large",
+        "author": "photographer",
+        "authorUrl": "photographer_url",
+        "page": "url",
+        "text": [
+          "alt"
+        ],
+        "items": "photos"
+      },
+      "credit": "Photo by {author} on Pexels",
+      "creditLinks": true,
+      "creditNotes": "Docs: show a prominent link to Pexels (e.g. 'Photos provided by Pexels') whenever API results are shown; credit photographers when possible, linking to the photo page (and photographer profile in the doc example).",
+      "hotlinkAllowed": true,
+      "mustDownload": false,
+      "downloadTrigger": null,
+      "cache": "UNVERIFIED: no caching duration stated in API docs (license/terms pages returned HTTP 403).",
+      "rateLimit": "200 requests/hour and 20,000 requests/month by default; free unlimited on request if attribution is shown. Headers X-Ratelimit-Limit/Remaining/Reset on 2xx only; 429 when exceeded.",
+      "termsUrl": "https://www.pexels.com/api/documentation/",
+      "license": "Pexels License (free for commercial/non-commercial use); full text UNVERIFIED (https://www.pexels.com/license/ returned 403)",
+      "status": "partial",
+      "unverified": [
+        "hotlink rule (docs do not forbid it; sample src URLs are on images.pexels.com)",
+        "cache duration",
+        "licence text"
+      ]
+    },
+    {
+      "id": "pixabay",
+      "name": "Pixabay",
+      "search": "https://pixabay.com/api/",
+      "auth": {
+        "type": "query",
+        "name": "key",
+        "keyEnv": "PIXABAY_API_KEY"
+      },
+      "params": {
+        "query": "q (max 100 chars, URL encoded)",
+        "perPage": "per_page 3-200",
+        "imageType": "image_type=photo",
+        "orientation": "orientation=horizontal"
+      },
+      "safeSearch": {
+        "param": "safesearch",
+        "value": "true"
+      },
+      "fields": {
+        "thumb": "webformatURL",
+        "full": "largeImageURL",
+        "author": "user",
+        "authorUrl": "https://pixabay.com/users/{user}-{user_id}/ (constructed from user and user_id)",
+        "page": "pageURL",
+        "text": [
+          "tags"
+        ],
+        "items": "hits",
+        "previewSmall": "previewURL (150px)"
+      },
+      "credit": "Image by {author} from Pixabay",
+      "creditLinks": true,
+      "creditNotes": "Docs only request: show users where images/videos come from whenever results are displayed. Exact credit wording is not in the docs; 'Image by {author} from Pixabay' is the conventional wording (UNVERIFIED).",
+      "hotlinkAllowed": false,
+      "mustDownload": true,
+      "downloadTrigger": null,
+      "cache": "Requests must be cached for 24 hours. Image URLs may be used only for temporarily displaying search results; webformatURL is valid 24 hours. Permanent hotlinking is not allowed: download images to your own server first.",
+      "rateLimit": "100 requests per 60 seconds per API key (headers X-RateLimit-Limit/Remaining/Reset); 429 'API rate limit exceeded'. Max 500 results per query. No systematic mass downloads.",
+      "termsUrl": "https://pixabay.com/api/docs/",
+      "license": "Pixabay Content License (https://pixabay.com/service/license-summary/ returned 403, text UNVERIFIED)",
+      "status": "verified",
+      "unverified": [
+        "exact credit wording",
+        "licence text"
+      ]
+    },
+    {
+      "id": "unsplash",
+      "name": "Unsplash",
+      "search": "https://api.unsplash.com/search/photos",
+      "auth": {
+        "type": "header",
+        "name": "Authorization",
+        "prefix": "Client-ID ",
+        "keyEnv": "UNSPLASH_ACCESS_KEY",
+        "alt": "query param client_id"
+      },
+      "params": {
+        "query": "query",
+        "perPage": "per_page (default 10)",
+        "orientation": "orientation=landscape|portrait|squarish"
+      },
+      "safeSearch": {
+        "param": "content_filter",
+        "value": "high"
+      },
+      "fields": {
+        "thumb": "urls.small",
+        "full": "urls.regular",
+        "author": "user.name",
+        "authorUrl": "user.links.html",
+        "page": "links.html",
+        "text": [
+          "alt_description",
+          "description"
+        ],
+        "items": "results",
+        "downloadLocation": "links.download_location"
+      },
+      "credit": "Photo by {author} on Unsplash",
+      "creditLinks": true,
+      "creditNotes": "Must credit Unsplash and the photographer, linking to the photographer's Unsplash profile. All links back to Unsplash must append ?utm_source=your_app_name&utm_medium=referral.",
+      "hotlinkAllowed": true,
+      "mustDownload": false,
+      "downloadTrigger": "links.download_location",
+      "downloadTriggerNotes": "Required: GET photo.links.download_location (authorized with client_id/Authorization, keep its query params like ixid) whenever a user chooses/uses the photo (inserting or setting it somewhere). Do it asynchronously. Event only; do not use it to embed the image.",
+      "hotlinkNotes": "REQUIRED: all uses must use the hotlinked photo.urls.* URLs returned by the API (not only in search results). Resize via URL params (w=, etc.).",
+      "cache": "UNVERIFIED: no cache duration found in the docs/guidelines pages read (https://unsplash.com/api-terms and /license returned no body text). Image URLs must stay hotlinked, so do not copy files to your own storage.",
+      "rateLimit": "Demo mode 50 requests/hour; production (after approval) 1000 requests/hour. Only api.unsplash.com JSON requests count; images.unsplash.com file requests do not.",
+      "termsUrl": "https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines",
+      "license": "Unsplash License (attribution not legally required by the licence, but required by API guidelines); licence text UNVERIFIED (unsplash.com/license returned no body text)",
+      "status": "verified",
+      "unverified": [
+        "cache duration",
+        "licence text",
+        "tags field in search results (alt_description/description documented)"
+      ]
+    },
+    {
+      "id": "commons",
+      "name": "Wikimedia Commons",
+      "search": "https://commons.wikimedia.org/w/api.php",
+      "searchParams": {
+        "action": "query",
+        "generator": "search",
+        "gsrsearch": "filetype:bitmap {query}",
+        "gsrnamespace": "6",
+        "gsrlimit": "10",
+        "prop": "imageinfo",
+        "iiprop": "url|extmetadata",
+        "iiurlwidth": "320",
+        "iiextmetadatafilter": "Artist|LicenseShortName|LicenseUrl|ImageDescription|ObjectName|Categories|AttributionRequired|UsageTerms",
+        "format": "json",
+        "formatversion": "2"
+      },
+      "auth": {
+        "type": "none",
+        "name": null,
+        "keyEnv": null,
+        "userAgent": "Send a descriptive User-Agent: <client>/<version> (<contact URL or email>) <library>/<version>, e.g. SousChef/1.0 (https://example.org/souschef; contact@example.org). From browser JS use the Api-User-Agent header. Generic/browser-copied/empty UAs may be blocked (HTTP 403)."
+      },
+      "safeSearch": null,
+      "safeSearchNotes": "No safe-search parameter. Filter on your side (e.g. require food-related terms/categories, reject titles/categories you do not want).",
+      "fields": {
+        "thumb": "imageinfo[0].thumburl",
+        "full": "imageinfo[0].url",
+        "author": "imageinfo[0].extmetadata.Artist.value (HTML; strip tags)",
+        "authorUrl": "href inside extmetadata.Artist.value (may be missing or a redlink)",
+        "page": "imageinfo[0].descriptionurl",
+        "text": [
+          "imageinfo[0].extmetadata.ImageDescription.value",
+          "imageinfo[0].extmetadata.ObjectName.value",
+          "imageinfo[0].extmetadata.Categories.value",
+          "title"
+        ],
+        "license": "imageinfo[0].extmetadata.LicenseShortName.value",
+        "licenseUrl": "imageinfo[0].extmetadata.LicenseUrl.value",
+        "items": "query.pages"
+      },
+      "credit": "{author} / {license}, via Wikimedia Commons",
+      "creditLinks": true,
+      "creditNotes": "Credit the creator named in the file's Artist field (not the uploader), name the licence (link to LicenseUrl) and link to the file page. Attribution rules differ per file; check AttributionRequired and Restrictions.",
+      "hotlinkAllowed": true,
+      "mustDownload": false,
+      "downloadTrigger": null,
+      "hotlinkNotes": "Commons says hotlinking is possible but 'not recommended' (COM:REUSE). Thumbnails come from thumb.wikimedia.org / upload.wikimedia.org. Detail on COM:REUSE/technical was not read (UNVERIFIED).",
+      "cache": "No fixed duration. MediaWiki API etiquette: cache data that can be cached; prefer GET.",
+      "rateLimit": "No hard limit on read requests; make requests in series, not parallel; use gzip; batch titles with |; block risk without a proper User-Agent. extmetadata is expensive: request few results at a time.",
+      "termsUrl": "https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia",
+      "license": "Per file: mostly CC BY, CC BY-SA, GFDL or public domain, read from extmetadata",
+      "uaPolicyUrl": "https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy",
+      "uaPolicyNote": "meta.wikimedia.org/wiki/User-Agent_policy returned an empty body when fetched; the same policy was read at the foundation.wikimedia.org URL.",
+      "etiquetteUrl": "https://www.mediawiki.org/wiki/API:Etiquette",
+      "status": "verified",
+      "unverified": [
+        "COM:REUSE/technical hotlinking details"
+      ]
+    }
+  ]
+}

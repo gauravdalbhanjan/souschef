@@ -3,10 +3,10 @@ import { Box, Typography, Button, IconButton, Dialog, DialogContent, InputBase, 
 import EditIcon from '@mui/icons-material/Edit'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import RestaurantIcon from '@mui/icons-material/Restaurant'
 import GoBackButton from './GoBackButton'
 import { C, T, PAD } from '../theme'
 import { pillPrimary, pillSecondary, surface, softBackdrop, Tag, ctaPrimary } from './Ambient'
+import SafeImg, { FallbackThumb } from './SafeImg'
 import {
   DAY_LETTERS, DAY_NAMES, SAMPLE_ROUTINES, loadRoutines, saveRoutines, resolveDish, ingredientsFor, imageFor, fmtTime,
 } from '../lib/routines.js'
@@ -58,9 +58,7 @@ function RoutineCard({ routine, onEdit, onToggleDay }) {
         aria-label={sample ? `Suggested routine: ${routine.dish}. Tap to set it up` : `${routine.dish}, ${fmtTime(routine.time)}, ${dayText}`}
         sx={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', gap: `${PAD * 1.5}px`, p: `${PAD}px`,
           borderRadius: '18px', '&:focus-visible': { outline: 'none' } }}>
-        {img
-          ? <Box component="img" src={img} alt="" sx={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }} />
-          : <Box sx={{ width: 56, height: 56, borderRadius: '12px', flexShrink: 0, background: 'rgba(var(--ink),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RestaurantIcon sx={{ color: 'var(--text-3)' }} /></Box>}
+        <SafeImg src={img} search={{ key: `dish-${routine.dish}`, name: routine.dish }} sx={{ width: 56, height: 56, borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }} fallback={<FallbackThumb sx={{ width: 56, height: 56, borderRadius: '12px', flexShrink: 0 }} />} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.title + 2}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{routine.dish}</Typography>
@@ -116,9 +114,7 @@ function RoutineDialog({ routine, onClose, onSave, onDelete }) {
       slotProps={{ backdrop: { sx: softBackdrop }, paper: { sx: sheet } }}>
       <DialogContent sx={{ p: `${PAD * 2.5}px`, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         {/* Header: the routine itself */}
-        {img
-          ? <Box component="img" src={img} alt="" sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
-          : <Box sx={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(var(--ink),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RestaurantIcon sx={{ color: 'var(--text-2)' }} /></Box>}
+        <SafeImg src={img} search={dish?.trim() ? { key: `dish-${dish.trim()}`, name: dish.trim() } : null} sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} fallback={<FallbackThumb sx={{ width: 64, height: 64, borderRadius: '50%' }} />} />
         {fixedDish ? (
           <Typography component="h2" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading}px`, mt: `${PAD * 1.25}px`, lineHeight: 1.2 }}>
             {isNew ? `Set up ${routine.dish}` : `Edit ${routine.dish}`}

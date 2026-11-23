@@ -1,0 +1,150 @@
+{
+  "version": "2026-11-17",
+  "note": "Facts read from each page on the checked date. fsis.usda.gov and cdc.gov returned HTTP 403 to the research fetcher, so the FDA page (which publishes the same minimum-temperature chart) is the cited source. Entries with status UNVERIFIED are never linked or used to show a number.",
+  "approvedHosts": ["www.fda.gov", "www.who.int", "nchfp.uga.edu", "developer.mozilla.org", "open-meteo.com", "www.copyright.gov", "fdc.nal.usda.gov", "en.wikipedia.org", "en.wikibooks.org"],
+  "sources": [
+    {
+      "id": "fda-safe-handling",
+      "name": "FDA: Safe Food Handling",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling",
+      "supports": "Minimum internal temperatures, chilling, separating raw foods, handwashing, marinating",
+      "license": "U.S. government work (public domain, 17 U.S.C. §105)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {
+        "poultry_f": 165, "ground_meat_f": 160, "whole_meat_f": 145, "whole_meat_rest_min": 3,
+        "fresh_ham_f": 145, "precooked_ham_reheat_f": 140, "fish_f": 145, "egg_dishes_f": 160,
+        "leftovers_f": 165, "fridge_max_f": 40, "freezer_max_f": 0,
+        "refrigerate_within_h": 2, "refrigerate_within_h_above_90f": 1, "handwash_s": 20
+      }
+    },
+    {
+      "id": "fda-seafood",
+      "name": "FDA: Selecting and Serving Fresh and Frozen Seafood Safely",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/food/buy-store-serve-safe-food/selecting-and-serving-fresh-and-frozen-seafood-safely",
+      "supports": "Cooking seafood to 145°F; risks of raw seafood such as sushi and ceviche",
+      "license": "U.S. government work (public domain, 17 U.S.C. §105)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": { "fish_f": 145 }
+    },
+    {
+      "id": "fda-raw-flour",
+      "name": "FDA: Handling Flour Safely",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/food/buy-store-serve-safe-food/handling-flour-safely-what-you-need-know",
+      "supports": "Never eat or taste raw flour, dough or batter",
+      "license": "U.S. government work (public domain, 17 U.S.C. §105)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "fda-allergens",
+      "name": "FDA: Food Allergies, What You Need to Know",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/food/buy-store-serve-safe-food/food-allergies-what-you-need-know",
+      "supports": "The 9 major food allergens (milk, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soybeans, sesame)",
+      "license": "U.S. government work (public domain, 17 U.S.C. §105)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": { "major_allergens": 9 }
+    },
+    {
+      "id": "who-natural-toxins",
+      "name": "WHO: Natural toxins in food",
+      "publisher": "World Health Organization",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/natural-toxins-in-food",
+      "supports": "Cassava and almonds contain cyanogenic glycosides; kidney bean lectins need soaking and vigorous boiling",
+      "license": "© WHO (linked, not copied)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": { "kidney_bean_soak_h": 12, "kidney_bean_boil_min": 10 }
+    },
+    {
+      "id": "who-botulism",
+      "name": "WHO: Botulism",
+      "publisher": "World Health Organization",
+      "url": "https://www.who.int/news-room/fact-sheets/detail/botulism",
+      "supports": "Home-canned and fermented, salted or smoked fish are common causes of botulism",
+      "license": "© WHO (linked, not copied)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "nchfp",
+      "name": "National Center for Home Food Preservation",
+      "publisher": "University of Georgia (USDA-funded program)",
+      "url": "https://nchfp.uga.edu/",
+      "supports": "Tested home canning, pickling and preserving methods",
+      "license": "Linked, not copied",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "fda-bad-bug-book",
+      "name": "FDA: Bad Bug Book (2nd edition)",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/food/foodborne-pathogens/bad-bug-book-second-edition",
+      "supports": "Foodborne pathogens and natural toxins handbook (e.g. Bacillus cereus in cooked rice)",
+      "license": "U.S. government work (public domain, 17 U.S.C. §105)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "fdc",
+      "name": "USDA FoodData Central",
+      "publisher": "U.S. Department of Agriculture",
+      "url": "https://fdc.nal.usda.gov/",
+      "supports": "Calories, protein, carbohydrate and fat per 100 g",
+      "license": "Public domain, CC0 1.0 (FoodData Central requested as the source)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "mdn-speech",
+      "name": "MDN: Using the Web Speech API",
+      "publisher": "Mozilla",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API",
+      "supports": "Depending on the browser, audio may be sent to a server-based recognition service or processed on the device",
+      "license": "CC BY-SA 2.5 (linked, not copied)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "open-meteo-terms",
+      "name": "Open-Meteo: Terms",
+      "publisher": "Open-Meteo",
+      "url": "https://open-meteo.com/en/terms",
+      "supports": "Free API for non-commercial use; data under CC BY 4.0",
+      "license": "CC BY 4.0 (data)",
+      "checked": "2026-11-17",
+      "status": "verified",
+      "facts": {}
+    },
+    {
+      "id": "fsis-temps",
+      "name": "USDA FSIS: Safe Minimum Internal Temperature Chart",
+      "publisher": "USDA Food Safety and Inspection Service",
+      "url": "https://www.fsis.usda.gov/food-safety/safe-food-handling-and-preparation/food-safety-basics/safe-temperature-chart",
+      "supports": "Minimum internal temperatures",
+      "license": "U.S. government work",
+      "checked": "2026-11-17",
+      "status": "UNVERIFIED",
+      "facts": {}
+    }
+  ],
+  "internal": [
+    { "id": "pantry", "name": "Your pantry on this device", "supports": "Ingredient amounts available" },
+    { "id": "receipt", "name": "Your scanned receipt", "supports": "Brand and amounts bought" },
+    { "id": "catalog", "name": "SousChef catalog recipe data", "supports": "Times, servings and calories typed into the bundled recipes" },
+    { "id": "app-rules", "name": "SousChef cooking-time and scaling rules", "supports": "Time ranges per technique, scaling limits" }
+  ]
+}

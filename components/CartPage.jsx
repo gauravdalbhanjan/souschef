@@ -5,7 +5,11 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import AddIcon from '@mui/icons-material/Add'
 import BoltIcon from '@mui/icons-material/Bolt'
 import GoBackButton from './GoBackButton'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import { PRO } from '../lib/features.js'
+import { ProSignupLink } from './ProSignup'
 import { C, glass, T, PAD } from '../theme'
+import { ctaPrimary } from './Ambient'
 import { api } from '../api'
 import { unitLabel } from '../units'
 
@@ -67,10 +71,11 @@ export default function CartPage({ onBack }) {
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
-        <GoBackButton onClick={onBack} />
-        {items.length > 0 && (
-          <Button onClick={clear} sx={{ color: 'var(--text-2)', textTransform: 'none', fontSize: `${T.sub}px` }}>Clear all</Button>
-        )}
+        <GoBackButton onClick={onBack}>
+          {items.length > 0 && (
+            <Button onClick={clear} sx={{ color: 'var(--text-2)', textTransform: 'none', fontSize: `${T.sub}px` }}>Clear all</Button>
+          )}
+        </GoBackButton>
       </Box>
 
       <Box sx={{ px: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
@@ -145,11 +150,13 @@ export default function CartPage({ onBack }) {
               {handoff.providers.map(p => (
                 <Button
                   key={p.id}
-                  onClick={() => window.open(p.url, '_blank')}
+                  // External store site: new tab, no opener, no referrer; labelled as external.
+                  onClick={() => window.open(p.url, '_blank', 'noopener,noreferrer')}
+                  aria-label={`${p.name} (external site, opens in a new tab)`}
                   endIcon={p.prefilled ? <BoltIcon /> : <OpenInNewIcon />}
                   sx={{ ...glass('neutral', { radius: 16, blur: 14, a: 0.06 }), background: providerColor[p.id], color: 'var(--fg)', textTransform: 'none', fontWeight: 700, fontSize: `${T.body}px`, justifyContent: 'space-between', px: `${PAD * 1.5}px`, py: `${PAD * 1.25}px` }}
                 >
-                  {p.name}{p.prefilled ? ' · cart pre-filled' : ''}
+                  {p.name} ↗{p.prefilled ? ' · cart pre-filled' : ' · external site'}
                 </Button>
               ))}
             </Box>
@@ -158,12 +165,23 @@ export default function CartPage({ onBack }) {
       </Box>
 
       {items.length > 0 && (
-        <Box sx={{ flexShrink: 0, px: `${PAD * 1.5}px`, py: `${PAD * 1.5}px`, background: 'linear-gradient(to top, rgba(11,14,20,0.85) 55%, transparent)', backdropFilter: 'blur(6px)' }}>
-          <Button fullWidth onClick={checkout} disabled={checkingOut}
-            startIcon={checkingOut ? <CircularProgress size={16} sx={{ color: 'var(--fg)' }} /> : null}
-            sx={{ ...glass('amber', { radius: 30, blur: 14, a: 0.34 }), color: 'var(--fg)', textTransform: 'none', fontWeight: 800, fontSize: `${T.body + 1}px`, py: `${PAD * 1.25}px`, '&:hover': { background: 'rgba(var(--accent-rgb),0.5)' } }}>
-            {checkingOut ? 'Preparing…' : (handoff ? 'Refresh order links' : 'Checkout — choose delivery')}
-          </Button>
+        <Box sx={{ flexShrink: 0, px: `${PAD * 1.5}px`, py: `${PAD * 1.5}px`, background: 'transparent' }}>
+          {PRO.deliveryCheckout ? (
+            <Button fullWidth onClick={checkout} disabled={checkingOut}
+              startIcon={checkingOut ? <CircularProgress size={16} sx={{ color: 'var(--fg)' }} /> : null}
+              sx={{ ...ctaPrimary, width: '100%' }}>
+              {checkingOut ? 'Preparing…' : (handoff ? 'Refresh order links' : 'Checkout — choose delivery')}
+            </Button>
+          ) : (
+            <>
+              {/* Lite: delivery checkout is a SousChef Pro feature. */}
+              <Button fullWidth disabled startIcon={<LockOutlinedIcon />} aria-describedby="checkout-locked"
+                sx={{ ...ctaPrimary, width: '100%', '&.Mui-disabled': { background: 'rgba(var(--accent-rgb),0.35)', color: 'var(--fg)' } }}>
+                Checkout — Locked
+              </Button>
+              <Box id="checkout-locked" sx={{ mt: `${PAD}px` }}><ProSignupLink /></Box>
+            </>
+          )}
         </Box>
       )}
     </Box>

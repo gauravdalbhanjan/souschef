@@ -29,7 +29,9 @@ function ClocheIcon({ size = 64, color = '#aaa' }) {
 // "Sous" small, sitting above+left of the large "chef" text
 // The "e" in chef is replaced by the cloche icon
 // "Cooking made easy" subtitle centered below
-export function Logo({ size = 'large', splashMode = false }) {
+// tier: optional pill on the "Sous" line (off by default; the tier shows
+// next to the version in Settings and About).
+export function Logo({ size = 'large', splashMode: _splashMode = false, tier = null }) {
   // On splash: greys (matching the reference image exactly)
   // On login:  amber accent for "Sous" + icon
   // Theme tokens, so the wordmark stays sharp on light and dark.
@@ -45,7 +47,7 @@ export function Logo({ size = 'large', splashMode = false }) {
 
   return (
     // Adaptive wrapper: a soft drop-shadow lifts the hat + wordmark off any canvas.
-    <Box role="img" aria-label="SousChef, cooking made easy"
+    <Box role="img" aria-label={`SousChef${tier ? ` ${tier}` : ''}, cooking made easy`}
       sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.22))' }}>
 
       {/* Row: "Sous" sits top-left relative to the chef text */}
@@ -96,6 +98,19 @@ export function Logo({ size = 'large', splashMode = false }) {
         }}>
           f
         </Typography>
+
+        {/* Tier pill: on the same line as "Sous", flush with the right edge of
+            the wordmark (its centre lines up with the centre of "Sous"). */}
+        {tier && (
+          <Box component="span" sx={{
+            position: 'absolute', right: 0, top: size === 'large' ? -24 : -15,
+            px: size === 'large' ? '10px' : '6px', height: size === 'large' ? 24 : 15, display: 'inline-flex', alignItems: 'center',
+            borderRadius: '12px', background: accentColor, color: 'var(--accent-fg)',
+            fontSize: size === 'large' ? 13 : 8, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1,
+          }}>
+            {tier}
+          </Box>
+        )}
       </Box>
 
       {/* Subtitle */}

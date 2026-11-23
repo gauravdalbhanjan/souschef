@@ -1,0 +1,1561 @@
+{
+  "meta": {
+    "source": "USDA FoodData Central",
+    "url": "https://fdc.nal.usda.gov/",
+    "license": "USDA FoodData Central data are in the public domain and they are not copyrighted. They are published under CC0 1.0 Universal (CC0 1.0). No permission is needed for their use, but we request that users list FoodData Central as the source of the data, and when possible, notify us of the product that uses the data so we may better track how FDC is being used in the public domain.",
+    "licenseUrl": "https://fdc.nal.usda.gov/",
+    "dataTypes": [
+      "Foundation",
+      "SR Legacy"
+    ],
+    "retrieved": "2026-11-17",
+    "apiVersion": "REST API v1 not used for data (DEMO_KEY allows 10 requests/hour). Data read from FDC bulk JSON downloads: Foundation Foods 2025-12-18 and SR Legacy 2018-04."
+  },
+  "items": {
+    "apple": {
+      "fdcId": 171688,
+      "description": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 52,
+        "protein_g": 0.3,
+        "carbs_g": 13.8,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 125,
+          "portion": "1 cup, quartered or chopped"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 182,
+          "portion": "1 medium (3\" dia)"
+        }
+      },
+      "reason": "Raw apple with skin, the common whole-fruit form; generic SR entry rather than one cultivar",
+      "note": null
+    },
+    "avocado": {
+      "fdcId": 171705,
+      "description": "Avocados, raw, all commercial varieties",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 160,
+        "protein_g": 2,
+        "carbs_g": 8.5,
+        "fat_g": 14.7
+      },
+      "grams": {
+        "cup": {
+          "g": 150,
+          "portion": "1 cup, cubes"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 201,
+          "portion": "1 avocado, NS as to Florida or California"
+        }
+      },
+      "reason": "Raw, all commercial varieties; generic entry for unspecified avocado",
+      "note": null
+    },
+    "bacon": {
+      "fdcId": 168277,
+      "description": "Pork, cured, bacon, unprepared",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 393,
+        "protein_g": 13.7,
+        "carbs_g": 0,
+        "fat_g": 37.1
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "slice": {
+          "g": 28,
+          "portion": "1 slice raw"
+        }
+      },
+      "reason": "Unprepared (raw) cured bacon, as sold; recipes cook it themselves",
+      "note": null
+    },
+    "banana": {
+      "fdcId": 173944,
+      "description": "Bananas, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 89,
+        "protein_g": 1.1,
+        "carbs_g": 22.8,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 150,
+          "portion": "1 cup, sliced"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 118,
+          "portion": "1 medium (7\" to 7-7/8\" long)"
+        }
+      },
+      "reason": "Raw banana",
+      "note": null
+    },
+    "basil": {
+      "fdcId": 172232,
+      "description": "Basil, fresh",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 23,
+        "protein_g": 3.2,
+        "carbs_g": 2.7,
+        "fat_g": 0.6
+      },
+      "grams": {
+        "cup": {
+          "g": 24,
+          "portion": "0.25 cup leaves, whole"
+        },
+        "tbsp": {
+          "g": 2.7,
+          "portion": "2 tbsp, chopped"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Fresh basil, the form used in cooking",
+      "note": null
+    },
+    "beans": {
+      "fdcId": 173734,
+      "description": "Beans, black, mature seeds, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 341,
+        "protein_g": 21.6,
+        "carbs_g": 62.4,
+        "fat_g": 1.4
+      },
+      "grams": {
+        "cup": {
+          "g": 194,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 12.1,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Generic 'beans' mapped to black beans, mature seeds, raw (dry), as sold",
+      "note": "'beans' is ambiguous (dry vs canned, which variety). Black beans, dry, is a proxy; cooked/canned beans have about 1/3 the calories per 100 g."
+    },
+    "beef": {
+      "fdcId": 2514744,
+      "description": "Beef, ground, 80% lean meat / 20% fat, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 248,
+        "protein_g": 17.5,
+        "carbs_g": 0,
+        "fat_g": 19.4
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw ground beef 80/20, the most common as-sold retail form",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL"
+    },
+    "bell pepper": {
+      "fdcId": 170427,
+      "description": "Peppers, sweet, green, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 20,
+        "protein_g": 0.9,
+        "carbs_g": 4.6,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 149,
+          "portion": "1 cup, chopped"
+        },
+        "tbsp": {
+          "g": 9.3,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": {
+          "g": 119,
+          "portion": "1 medium (approx 2-3/4\" long, 2-1/2\" dia)"
+        }
+      },
+      "reason": "Raw sweet green pepper; most common as-sold bell pepper",
+      "note": null
+    },
+    "berries": {
+      "fdcId": 2346411,
+      "description": "Blueberries, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 57.4,
+        "protein_g": 0.7,
+        "carbs_g": 14.6,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 148,
+          "portion": "1 cup [SR Legacy 171711]"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Generic 'berries' mapped to raw blueberries (Foundation); cup weight from SR Legacy blueberries",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL | Proxy: blueberries. Strawberries and raspberries differ in kcal per 100 g."
+    },
+    "black pepper": {
+      "fdcId": 170931,
+      "description": "Spices, pepper, black",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 251,
+        "protein_g": 10.4,
+        "carbs_g": 64,
+        "fat_g": 3.3
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": {
+          "g": 6.9,
+          "portion": "1 tbsp, ground"
+        },
+        "tsp": {
+          "g": 2.3,
+          "portion": "1 tsp, ground"
+        },
+        "unit": null
+      },
+      "reason": "Ground black pepper spice",
+      "note": null
+    },
+    "bread": {
+      "fdcId": 325871,
+      "description": "Bread, white, commercially prepared",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 270,
+        "protein_g": 9.4,
+        "carbs_g": 49.2,
+        "fat_g": 3.6
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "slice": {
+          "g": 27.3,
+          "portion": "1 slice"
+        }
+      },
+      "reason": "Commercially prepared white bread, as sold (Foundation)",
+      "note": null
+    },
+    "broccoli": {
+      "fdcId": 747447,
+      "description": "Broccoli, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 31,
+        "protein_g": 2.6,
+        "carbs_g": 6.3,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 76,
+          "portion": "1 cup chopped"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw broccoli (Foundation)",
+      "note": null
+    },
+    "butter": {
+      "fdcId": 173410,
+      "description": "Butter, salted",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 717,
+        "protein_g": 0.9,
+        "carbs_g": 0.1,
+        "fat_g": 81.1
+      },
+      "grams": {
+        "cup": {
+          "g": 227,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 14.2,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null,
+        "stick": {
+          "g": 113,
+          "portion": "1 stick"
+        }
+      },
+      "reason": "Salted butter, most common retail form",
+      "note": null
+    },
+    "carrot": {
+      "fdcId": 170393,
+      "description": "Carrots, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 41,
+        "protein_g": 0.9,
+        "carbs_g": 9.6,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 128,
+          "portion": "1 cup chopped"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 61,
+          "portion": "1 medium"
+        }
+      },
+      "reason": "Raw carrots",
+      "note": null
+    },
+    "cheese": {
+      "fdcId": 328637,
+      "description": "Cheese, cheddar",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 408,
+        "protein_g": 23.3,
+        "carbs_g": 2.4,
+        "fat_g": 34
+      },
+      "grams": {
+        "cup": {
+          "g": 105,
+          "portion": "1 cup shredded"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "slice": {
+          "g": 17,
+          "portion": "1 slice"
+        }
+      },
+      "reason": "Generic 'cheese' mapped to cheddar (Foundation), the most common cooking cheese",
+      "note": "Proxy: cheddar. Other cheeses differ (e.g. mozzarella, feta)."
+    },
+    "chicken": {
+      "fdcId": 171077,
+      "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 120,
+        "protein_g": 22.5,
+        "carbs_g": 0,
+        "fat_g": 2.6
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw boneless skinless breast meat is how recipes use chicken",
+      "note": "FDC lists only 'piece' (272 g), 'package' and 'oz' portions; no cup or unit weight recorded."
+    },
+    "chickpeas": {
+      "fdcId": 2644288,
+      "description": "Chickpeas (garbanzo beans, bengal gram), canned, sodium added, drained and rinsed",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 133,
+        "protein_g": 7,
+        "carbs_g": 20.3,
+        "fat_g": 3.1
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "can": {
+          "g": 253,
+          "portion": "1 can drained [SR Legacy 173800]"
+        }
+      },
+      "reason": "Canned, drained and rinsed (Foundation), as sold in a 'can'; can weight from SR Legacy canned drained solids",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL | Canned form chosen because recipe unit is 'can'. 'can' weight is the drained solids of one can (SR Legacy 173800)."
+    },
+    "chili": {
+      "fdcId": 170497,
+      "description": "Peppers, hot chili, green, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 40,
+        "protein_g": 2,
+        "carbs_g": 9.5,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 150,
+          "portion": "0.5 cup, chopped or diced"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 45,
+          "portion": "1 pepper"
+        }
+      },
+      "reason": "Raw hot green chili pepper",
+      "note": null
+    },
+    "cilantro": {
+      "fdcId": 169997,
+      "description": "Coriander (cilantro) leaves, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 23,
+        "protein_g": 2.1,
+        "carbs_g": 3.7,
+        "fat_g": 0.5
+      },
+      "grams": {
+        "cup": {
+          "g": 16,
+          "portion": "0.25 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw coriander (cilantro) leaves",
+      "note": "No FDC portion weight for recipe unit(s): bunch"
+    },
+    "coffee": {
+      "fdcId": 171893,
+      "description": "Beverages, coffee, instant, regular, powder",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 353,
+        "protein_g": 12.2,
+        "carbs_g": 75.4,
+        "fat_g": 0.5
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": {
+          "g": 1,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Dry form: instant coffee powder is the only dry coffee in FDC Foundation/SR Legacy (no roasted ground coffee entry)",
+      "note": "Dry INSTANT powder, not roasted ground beans and not brewed. Brewed coffee is about 1 kcal/100 g."
+    },
+    "cream": {
+      "fdcId": 170859,
+      "description": "Cream, fluid, heavy whipping",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 340,
+        "protein_g": 2.8,
+        "carbs_g": 2.8,
+        "fat_g": 36.1
+      },
+      "grams": {
+        "cup": {
+          "g": 238,
+          "portion": "1 cup, fluid (yields 2 cups whipped)"
+        },
+        "tbsp": {
+          "g": 15,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Heavy whipping cream, fluid",
+      "note": "Proxy for generic 'cream'. Half-and-half is much lower in fat and kcal."
+    },
+    "croutons": {
+      "fdcId": 172751,
+      "description": "Croutons, plain",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 407,
+        "protein_g": 11.9,
+        "carbs_g": 73.5,
+        "fat_g": 6.6
+      },
+      "grams": {
+        "cup": {
+          "g": 30,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Plain croutons; SR Legacy generic entry (not branded)",
+      "note": null
+    },
+    "cucumber": {
+      "fdcId": 2346406,
+      "description": "Cucumber, with peel, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 13.9,
+        "protein_g": 0.6,
+        "carbs_g": 3,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 104,
+          "portion": "0.5 cup slices [SR Legacy 168409]"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 301,
+          "portion": "1 cucumber (8-1/4\") [SR Legacy 168409]"
+        }
+      },
+      "reason": "Raw cucumber with peel (Foundation); household weights from SR Legacy cucumber with peel",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL"
+    },
+    "cumin": {
+      "fdcId": 170923,
+      "description": "Spices, cumin seed",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 375,
+        "protein_g": 17.8,
+        "carbs_g": 44.2,
+        "fat_g": 22.3
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": {
+          "g": 6,
+          "portion": "1 tbsp, whole"
+        },
+        "tsp": {
+          "g": 2.1,
+          "portion": "1 tsp, whole"
+        },
+        "unit": null
+      },
+      "reason": "Cumin seed spice",
+      "note": "FDC only lists whole-seed volumes; ground cumin weighs somewhat less per tsp."
+    },
+    "dijon mustard": {
+      "fdcId": 326698,
+      "description": "Mustard, prepared, yellow",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 61,
+        "protein_g": 4.3,
+        "carbs_g": 5.3,
+        "fat_g": 3.4
+      },
+      "grams": {
+        "cup": {
+          "g": 249,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": {
+          "g": 6,
+          "portion": "1 teaspoon"
+        },
+        "unit": null
+      },
+      "reason": "No Dijon entry; prepared yellow mustard (Foundation) is the closest",
+      "note": "Proxy: yellow mustard. Dijon differs in sodium and fat; treat as approximate."
+    },
+    "egg": {
+      "fdcId": 171287,
+      "description": "Egg, whole, raw, fresh",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 143,
+        "protein_g": 12.6,
+        "carbs_g": 0.7,
+        "fat_g": 9.5
+      },
+      "grams": {
+        "cup": {
+          "g": 243,
+          "portion": "1 cup (4.86 large eggs)"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 50,
+          "portion": "1 large"
+        }
+      },
+      "reason": "Whole raw fresh egg",
+      "note": null
+    },
+    "flour": {
+      "fdcId": 168936,
+      "description": "Wheat flour, white, all-purpose, enriched, unbleached",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 364,
+        "protein_g": 10.3,
+        "carbs_g": 76.3,
+        "fat_g": 1
+      },
+      "grams": {
+        "cup": {
+          "g": 125,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "All-purpose white flour, enriched, unbleached; the common supermarket flour",
+      "note": null
+    },
+    "garlic": {
+      "fdcId": 1104647,
+      "description": "Garlic, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 143,
+        "protein_g": 6.6,
+        "carbs_g": 28.2,
+        "fat_g": 0.4
+      },
+      "grams": {
+        "cup": {
+          "g": 136,
+          "portion": "1 cup [SR Legacy 169230]"
+        },
+        "tbsp": null,
+        "tsp": {
+          "g": 2.8,
+          "portion": "1 tsp [SR Legacy 169230]"
+        },
+        "unit": null,
+        "clove": {
+          "g": 3,
+          "portion": "1 clove [SR Legacy 169230]"
+        }
+      },
+      "reason": "Raw garlic (Foundation); clove/tsp/cup weights from SR Legacy raw garlic",
+      "note": null
+    },
+    "garlic powder": {
+      "fdcId": 171325,
+      "description": "Spices, garlic powder",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 331,
+        "protein_g": 16.6,
+        "carbs_g": 72.7,
+        "fat_g": 0.7
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": {
+          "g": 9.7,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 3.1,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Garlic powder spice",
+      "note": null
+    },
+    "ginger": {
+      "fdcId": 169231,
+      "description": "Ginger root, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 80,
+        "protein_g": 1.8,
+        "carbs_g": 17.8,
+        "fat_g": 0.8
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": {
+          "g": 2,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Raw ginger root",
+      "note": "No FDC portion weight for recipe unit(s): tbsp"
+    },
+    "grapes": {
+      "fdcId": 2346412,
+      "description": "Grapes, red, seedless, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 77.2,
+        "protein_g": 0.9,
+        "carbs_g": 20.2,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 151,
+          "portion": "1 cup [SR Legacy 174683]"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw red seedless grapes (Foundation); cup weight from SR Legacy raw European-type grapes",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL"
+    },
+    "honey": {
+      "fdcId": 169640,
+      "description": "Honey",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 304,
+        "protein_g": 0.3,
+        "carbs_g": 82.4,
+        "fat_g": 0
+      },
+      "grams": {
+        "cup": {
+          "g": 339,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 21,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Honey",
+      "note": null
+    },
+    "lemon": {
+      "fdcId": 167746,
+      "description": "Lemons, raw, without peel",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 29,
+        "protein_g": 1.1,
+        "carbs_g": 9.3,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 212,
+          "portion": "1 cup, sections"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 58,
+          "portion": "1 fruit (2-1/8\" dia)"
+        }
+      },
+      "reason": "Raw lemon without peel (the only raw lemon entry); 'unit' uses the 2-1/8 in fruit",
+      "note": "Nutrition is for peeled flesh. SR Legacy lists 58 g (2-1/8 in) and 84 g (2-3/8 in) fruit; 58 g chosen as a typical supermarket lemon."
+    },
+    "lettuce": {
+      "fdcId": 169248,
+      "description": "Lettuce, iceberg (includes crisphead types), raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 14,
+        "protein_g": 0.9,
+        "carbs_g": 3,
+        "fat_g": 0.1
+      },
+      "grams": {
+        "cup": {
+          "g": 72,
+          "portion": "1 cup shredded"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "head": {
+          "g": 539,
+          "portion": "1 head, medium (6\" dia)"
+        }
+      },
+      "reason": "Raw iceberg lettuce, the 'head' lettuce in FDC",
+      "note": "Proxy for generic 'lettuce'; romaine is slightly higher in kcal."
+    },
+    "lime": {
+      "fdcId": 168155,
+      "description": "Limes, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 30,
+        "protein_g": 0.7,
+        "carbs_g": 10.5,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 67,
+          "portion": "1 fruit (2\" dia)"
+        }
+      },
+      "reason": "Raw lime",
+      "note": null
+    },
+    "mango": {
+      "fdcId": 169910,
+      "description": "Mangos, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 60,
+        "protein_g": 0.8,
+        "carbs_g": 15,
+        "fat_g": 0.4
+      },
+      "grams": {
+        "cup": {
+          "g": 165,
+          "portion": "1 cup pieces"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 336,
+          "portion": "1 fruit without refuse"
+        }
+      },
+      "reason": "Raw mango",
+      "note": null
+    },
+    "mayonnaise": {
+      "fdcId": 171009,
+      "description": "Salad dressing, mayonnaise, regular",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 680,
+        "protein_g": 1,
+        "carbs_g": 0.6,
+        "fat_g": 74.8
+      },
+      "grams": {
+        "cup": {
+          "g": 220,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 13.8,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Regular mayonnaise (SR 'Salad dressing, mayonnaise, regular')",
+      "note": null
+    },
+    "milk": {
+      "fdcId": 746782,
+      "description": "Milk, whole, 3.25% milkfat, with added vitamin D",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 60,
+        "protein_g": 3.3,
+        "carbs_g": 4.6,
+        "fat_g": 3.2
+      },
+      "grams": {
+        "cup": {
+          "g": 249,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Whole milk 3.25% (Foundation)",
+      "note": "Recipe unit is ml; use the cup weight (249 g per cup) to convert."
+    },
+    "mushroom": {
+      "fdcId": 1999629,
+      "description": "Mushrooms, white button",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 24.9,
+        "protein_g": 2.9,
+        "carbs_g": 4.1,
+        "fat_g": 0.4
+      },
+      "grams": {
+        "cup": {
+          "g": 70,
+          "portion": "1 cup, pieces or slices [SR Legacy 169251]"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 18,
+          "portion": "1 medium [SR Legacy 169251]"
+        }
+      },
+      "reason": "Raw white button mushrooms (Foundation); weights from SR Legacy raw white mushrooms",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL"
+    },
+    "oats": {
+      "fdcId": 173904,
+      "description": "Cereals, oats, regular and quick, not fortified, dry",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 379,
+        "protein_g": 13.2,
+        "carbs_g": 67.7,
+        "fat_g": 6.5
+      },
+      "grams": {
+        "cup": {
+          "g": 81,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Rolled/quick oats, dry, unenriched",
+      "note": null
+    },
+    "oil": {
+      "fdcId": 172336,
+      "description": "Oil, canola",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      },
+      "grams": {
+        "cup": {
+          "g": 218,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 14,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 4.5,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Generic cooking oil mapped to canola oil (SR Legacy; the Foundation canola record has no nutrient values)",
+      "note": "Proxy: canola oil. Other vegetable oils are similar per 100 g."
+    },
+    "olive oil": {
+      "fdcId": 171413,
+      "description": "Oil, olive, salad or cooking",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 884,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 100
+      },
+      "grams": {
+        "cup": {
+          "g": 216,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 13.5,
+          "portion": "1 tablespoon"
+        },
+        "tsp": {
+          "g": 4.5,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Olive oil, salad or cooking (SR Legacy; the Foundation extra-virgin record has no nutrient values)",
+      "note": null
+    },
+    "onion": {
+      "fdcId": 170000,
+      "description": "Onions, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 40,
+        "protein_g": 1.1,
+        "carbs_g": 9.3,
+        "fat_g": 0.1
+      },
+      "grams": {
+        "cup": {
+          "g": 160,
+          "portion": "1 cup, chopped"
+        },
+        "tbsp": {
+          "g": 10,
+          "portion": "1 tbsp chopped"
+        },
+        "tsp": null,
+        "unit": {
+          "g": 110,
+          "portion": "1 medium (2-1/2\" dia)"
+        }
+      },
+      "reason": "Raw onions (generic)",
+      "note": null
+    },
+    "orange": {
+      "fdcId": 169097,
+      "description": "Oranges, raw, all commercial varieties",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 47,
+        "protein_g": 0.9,
+        "carbs_g": 11.8,
+        "fat_g": 0.1
+      },
+      "grams": {
+        "cup": {
+          "g": 180,
+          "portion": "1 cup, sections"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 131,
+          "portion": "1 fruit (2-5/8\" dia)"
+        }
+      },
+      "reason": "Raw oranges, all commercial varieties",
+      "note": null
+    },
+    "paprika": {
+      "fdcId": 171329,
+      "description": "Spices, paprika",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 282,
+        "protein_g": 14.1,
+        "carbs_g": 54,
+        "fat_g": 12.9
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": {
+          "g": 6.8,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 2.3,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Paprika spice",
+      "note": null
+    },
+    "parmesan": {
+      "fdcId": 325036,
+      "description": "Cheese, parmesan, grated",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 421,
+        "protein_g": 29.6,
+        "carbs_g": 12.4,
+        "fat_g": 28
+      },
+      "grams": {
+        "cup": {
+          "g": 100,
+          "portion": "1 cup [SR Legacy 171247]"
+        },
+        "tbsp": {
+          "g": 7.6,
+          "portion": "1 tablespoon"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Grated parmesan (Foundation); cup weight from SR Legacy grated parmesan",
+      "note": null
+    },
+    "pasta": {
+      "fdcId": 168927,
+      "description": "Pasta, dry, unenriched",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 371,
+        "protein_g": 13,
+        "carbs_g": 74.7,
+        "fat_g": 1.5
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Dry unenriched pasta, as sold",
+      "note": "FDC cup weights depend on pasta shape (64 to 122 g), so no single cup weight is recorded."
+    },
+    "pork": {
+      "fdcId": 2514745,
+      "description": "Pork, ground, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 233,
+        "protein_g": 17.8,
+        "carbs_g": 0,
+        "fat_g": 17.5
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw ground pork (Foundation), a generic as-sold pork cut",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL | Proxy for generic 'pork'. Loin cuts are leaner."
+    },
+    "potato": {
+      "fdcId": 170026,
+      "description": "Potatoes, flesh and skin, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 77,
+        "protein_g": 2.1,
+        "carbs_g": 17.5,
+        "fat_g": 0.1
+      },
+      "grams": {
+        "cup": {
+          "g": 150,
+          "portion": "0.5 cup, diced"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 213,
+          "portion": "1 Potato medium (2-1/4\" to 3-1/4\" dia)"
+        }
+      },
+      "reason": "Raw potato, flesh and skin",
+      "note": null
+    },
+    "rice": {
+      "fdcId": 169756,
+      "description": "Rice, white, long-grain, regular, raw, unenriched",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 365,
+        "protein_g": 7.1,
+        "carbs_g": 80,
+        "fat_g": 0.7
+      },
+      "grams": {
+        "cup": {
+          "g": 185,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "White long-grain regular rice, raw, unenriched",
+      "note": null
+    },
+    "salmon": {
+      "fdcId": 2684441,
+      "description": "Fish, salmon, Atlantic, farm raised, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 203,
+        "protein_g": 20.3,
+        "carbs_g": 0,
+        "fat_g": 13.1
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 396,
+          "portion": "0.5 fillet [SR Legacy 175167]"
+        }
+      },
+      "reason": "Raw farm-raised Atlantic salmon (Foundation); fillet weight from SR Legacy",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL | 'unit' = one whole fillet (FDC lists 0.5 fillet = 198 g, so 396 g)."
+    },
+    "salt": {
+      "fdcId": 173468,
+      "description": "Salt, table",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 0,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0
+      },
+      "grams": {
+        "cup": {
+          "g": 292,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 18,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 6,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Table salt (SR Legacy; the Foundation iodized-salt record has no nutrient values)",
+      "note": null
+    },
+    "shrimp": {
+      "fdcId": 2684443,
+      "description": "Crustaceans, shrimp, farm raised, raw",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 75.7,
+        "protein_g": 15.6,
+        "carbs_g": 0.5,
+        "fat_g": 0.8
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw farm-raised shrimp (Foundation)",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL | Recipe unit is g; no household unit recorded."
+    },
+    "soy sauce": {
+      "fdcId": 174277,
+      "description": "Soy sauce made from soy and wheat (shoyu)",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 53,
+        "protein_g": 8.1,
+        "carbs_g": 4.9,
+        "fat_g": 0.6
+      },
+      "grams": {
+        "cup": {
+          "g": 255,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 16,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 5.3,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Soy sauce made from soy and wheat (shoyu)",
+      "note": null
+    },
+    "spinach": {
+      "fdcId": 168462,
+      "description": "Spinach, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 23,
+        "protein_g": 2.9,
+        "carbs_g": 3.6,
+        "fat_g": 0.4
+      },
+      "grams": {
+        "cup": {
+          "g": 30,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null,
+        "bunch": {
+          "g": 340,
+          "portion": "1 bunch"
+        }
+      },
+      "reason": "Raw spinach",
+      "note": null
+    },
+    "sugar": {
+      "fdcId": 746784,
+      "description": "Sugars, granulated",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 385,
+        "protein_g": 0,
+        "carbs_g": 99.6,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 188,
+          "portion": "1 cup"
+        },
+        "tbsp": null,
+        "tsp": {
+          "g": 4,
+          "portion": "1 teaspoon"
+        },
+        "unit": null
+      },
+      "reason": "Granulated sugar (Foundation)",
+      "note": null
+    },
+    "tea": {
+      "fdcId": 173230,
+      "description": "Beverages, tea, instant, unsweetened, powder",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 315,
+        "protein_g": 20.2,
+        "carbs_g": 58.7,
+        "fat_g": 0
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": {
+          "g": 0.7,
+          "portion": "1 serving 1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Dry form: instant unsweetened tea powder is the only dry tea in FDC Foundation/SR Legacy (no tea leaves entry)",
+      "note": "Dry INSTANT tea powder, not tea leaves and not brewed. Brewed black tea is about 1 kcal/100 g."
+    },
+    "tofu": {
+      "fdcId": 172475,
+      "description": "Tofu, raw, firm, prepared with calcium sulfate",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 144,
+        "protein_g": 17.3,
+        "carbs_g": 2.8,
+        "fat_g": 8.7
+      },
+      "grams": {
+        "cup": {
+          "g": 252,
+          "portion": "0.5 cup"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Raw firm tofu prepared with calcium sulfate",
+      "note": null
+    },
+    "tomato": {
+      "fdcId": 170457,
+      "description": "Tomatoes, red, ripe, raw, year round average",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 18,
+        "protein_g": 0.9,
+        "carbs_g": 3.9,
+        "fat_g": 0.2
+      },
+      "grams": {
+        "cup": {
+          "g": 180,
+          "portion": "1 cup, chopped or sliced"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 123,
+          "portion": "1 medium whole (2-3/5\" dia)"
+        }
+      },
+      "reason": "Raw red ripe tomatoes, year round average",
+      "note": null
+    },
+    "tortilla": {
+      "fdcId": 173242,
+      "description": "Tortillas, ready-to-bake or -fry, flour, without added calcium",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 325,
+        "protein_g": 8.7,
+        "carbs_g": 55.6,
+        "fat_g": 7.1
+      },
+      "grams": {
+        "cup": null,
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 49,
+          "portion": "1 tortilla (approx 7-8\" dia)"
+        }
+      },
+      "reason": "Flour tortilla, ready-to-bake/fry; 'unit' uses the 7-8 in size",
+      "note": "FDC sizes: 6 in 32 g, 7-8 in 49 g, 10 in 72 g, 12 in 117 g."
+    },
+    "vinegar": {
+      "fdcId": 172237,
+      "description": "Vinegar, distilled",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 18,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0
+      },
+      "grams": {
+        "cup": {
+          "g": 238,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 14.9,
+          "portion": "1 tbsp"
+        },
+        "tsp": {
+          "g": 5,
+          "portion": "1 tsp"
+        },
+        "unit": null
+      },
+      "reason": "Distilled vinegar; generic vinegar",
+      "note": null
+    },
+    "worcestershire": {
+      "fdcId": 171610,
+      "description": "Sauce, worcestershire",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 77,
+        "protein_g": 0,
+        "carbs_g": 19.2,
+        "fat_g": 0
+      },
+      "grams": {
+        "cup": {
+          "g": 275,
+          "portion": "1 cup"
+        },
+        "tbsp": {
+          "g": 17,
+          "portion": "1 tbsp"
+        },
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Worcestershire sauce, generic SR entry",
+      "note": "No FDC portion weight for recipe unit(s): tsp"
+    },
+    "yogurt": {
+      "fdcId": 2259793,
+      "description": "Yogurt, plain, whole milk",
+      "dataType": "Foundation",
+      "per100g": {
+        "kcal": 77.3,
+        "protein_g": 3.8,
+        "carbs_g": 5.6,
+        "fat_g": 4.5
+      },
+      "grams": {
+        "cup": {
+          "g": 245,
+          "portion": "1 cup (8 fl oz) [SR Legacy 171284]"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": null
+      },
+      "reason": "Plain whole-milk yogurt (Foundation); cup weight from SR Legacy",
+      "note": "kcal from Atwater energy (specific factors); no analytical KCAL"
+    },
+    "zucchini": {
+      "fdcId": 169291,
+      "description": "Squash, summer, zucchini, includes skin, raw",
+      "dataType": "SR Legacy",
+      "per100g": {
+        "kcal": 17,
+        "protein_g": 1.2,
+        "carbs_g": 3.1,
+        "fat_g": 0.3
+      },
+      "grams": {
+        "cup": {
+          "g": 124,
+          "portion": "1 cup, chopped"
+        },
+        "tbsp": null,
+        "tsp": null,
+        "unit": {
+          "g": 196,
+          "portion": "1 medium"
+        }
+      },
+      "reason": "Raw zucchini with skin",
+      "note": null
+    }
+  }
+}

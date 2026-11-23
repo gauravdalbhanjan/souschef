@@ -20,6 +20,16 @@ import { AMBIENT_BG, ListeningOrb, PromptBar, RECEIPT_STEPS, ctaPrimary, ctaSeco
 import { parseSpokenList } from '../lib/spokenList.js'
 import { useSpeech } from '../lib/useSpeech.js'
 import { suggestItems } from '../lib/suggest.js'
+import { Tag } from './Ambient'
+import { OCR_DOWNLOAD_MB } from '../lib/ocr.js'
+import { downloads } from '../lib/downloads.js'
+import { PRO, LOCKED_NOTE } from '../lib/features.js'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import { ProSignupLink } from './ProSignup'
+import { setJSON } from '../lib/localStore.js'
+import { ocrTooPoor } from '../lib/guardrails/receipt.js'
+
+const FLAG_TEXT = { unrecognized: 'Not recognized: check the name', disagree: 'Check this one', 'low-confidence': 'Check this one' }
 
 // Same yellow as the pantry "Add to cart" button, used for "added" confirmation.
 const ADDED_BG = 'var(--accent)'
@@ -128,7 +138,7 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
     if (!open) return
     const fromChef = prefill ? parseSpokenList(prefill) : []
     if (fromChef.length) { startConfirm({ items: fromChef, receiptId: null }); return }
-    setStage(initialMode === 'email' ? 'email' : 'input')
+    setStage(initialMode === 'email' && PRO.emailReceipts ? 'email' : 'input')
   }, [open, initialMode, prefill]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep the current item's chip scrolled into view in the name strip.
@@ -176,11 +186,15 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
     setConfirmed(new Set()); setStage('confirm')
   }
 
+  // First scan: ask before downloading the receipt scanner (choice remembered).
   const onPickImage = async (e) => {
     const input = e.target
     const file = input.files?.[0]
+    input.value = '' // allow re-picking the same photo
     if (!file) return
-    try { await processPhoto(file) } finally { input.value = '' } // allow re-picking the same photo
+    // The scanner files load in the background; the status line shows progress.
+    if (!downloads().ocr) { const d = downloads(); d.ocr = { mb: OCR_DOWNLOAD_MB, at: new Date().toISOString().slice(0, 10) }; setJSON('souschef_downloads', d) }
+    await processPhoto(file)
   }
 
   // Status while a receipt is processed (never looks frozen):
@@ -211,7 +225,13 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
   const processPhoto = async (file) => {
     setBusy(true); setError(''); setTick(0); setFound(null); setProgress('Preparing photo…')
     try {
-      const res = await api.scanReceipt(file, setProgress)
+      let res = await api.scanReceipt(file, setProgress)
+      // Very low OCR quality: ask for a retake instead of guessing.
+      if (ocrTooPoor(res)) {
+        setError('This photo is hard to read. Retake it flat, well lit and straight on.')
+        return
+      }
+      // Rule-based result (on-device AI cleanup is off: lib/features.js).
       if (!res.items?.length) {
         setError("We couldn't find grocery items in that photo. Try a flat, well-lit, straight-on shot, or add items by hand.")
         return
@@ -373,10 +393,19 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
               {!busy && (
                 <Box sx={{ textAlign: 'center', pt: `${PAD * 3}px` }}>
                   <Box sx={{ display: 'flex', justifyContent: 'center', gap: `${PAD * 3}px` }}>
-                    <Box component="button" type="button" onClick={() => { setError(''); setStage('email') }} sx={linkSx}>
-                      <EmailOutlinedIcon sx={{ fontSize: 16 }} /> Email receipt
-                    </Box>
+                    {PRO.emailReceipts ? (
+                      <Box component="button" type="button" onClick={() => { setError(''); setStage('email') }} sx={linkSx}>
+                        <EmailOutlinedIcon sx={{ fontSize: 16 }} /> Email receipt
+                      </Box>
+                    ) : (
+                      // Lite: email receipt scan is a SousChef Pro feature.
+                      <Box component="button" type="button" disabled aria-disabled="true" title={LOCKED_NOTE} aria-label={`Email receipt, locked. ${LOCKED_NOTE}`}
+                        sx={{ ...linkSx, cursor: 'default', opacity: 0.6 }}>
+                        <LockOutlinedIcon sx={{ fontSize: 16 }} /> Email receipt · Locked
+                      </Box>
+                    )}
                   </Box>
+                  {!PRO.emailReceipts && <ProSignupLink sx={{ mt: '6px' }} />}
                   <Typography sx={{ color: 'var(--text-3)', fontSize: `${T.chip}px`, mt: `${PAD * 1.5}px` }}>
                     Photos are read on your device and never uploaded.
                   </Typography>
@@ -386,7 +415,7 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
           )}
 
           {/* ── EMAIL: paste a receipt email ── */}
-          {stage === 'email' && (
+          {stage === 'email' && PRO.emailReceipts && (
             <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2.5}px`, pb: `${PAD * 2}px` }}>
               <Typography component="h2" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: 'clamp(22px, 6.5vw, 28px)', lineHeight: 1.2, mt: `${PAD}px` }}>
                 Paste your receipt email
@@ -427,6 +456,7 @@ export default function AddGroceries({ open, onClose, onCommitted, initialMode =
                 </Typography>
                 <TextField value={current.display} onChange={e => setField({ display: e.target.value })}
                   fullWidth label="Item name" sx={{ ...glassField, '& .MuiOutlinedInput-input': { fontSize: `${T.heading}px`, fontWeight: 800, py: '10px' } }} />
+                {current.flag && FLAG_TEXT[current.flag] && <Tag sx={{ mt: '4px' }}>{FLAG_TEXT[current.flag]}</Tag>}
                 {current.rawText && (
                   <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, mt: '4px' }}>
                     From receipt: “{current.rawText}”{current.confidence != null ? ` · ${Math.round(current.confidence * 100)}% match` : ''}

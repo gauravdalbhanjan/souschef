@@ -1,0 +1,136 @@
+{
+  "version": "2026-11-17",
+  "terms": {
+    "wikipedia": {
+      "license": "CC BY-SA 4.0 (text also GFDL unless noted). Reuse needs a link to the page or list of authors, a licence notice with link, and ShareAlike for changes.",
+      "url": "https://en.wikipedia.org/wiki/Wikipedia:Copyrights"
+    },
+    "wikibooks": {
+      "license": "CC BY-SA 4.0 and GFDL (dual-licensed; some text CC BY-SA only). Same attribution/ShareAlike rules as Wikipedia.",
+      "url": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights"
+    },
+    "themealdb": {
+      "summary": "Free test key '1' for development/educational use; you cannot publish to an app store unless you are a paid subscriber; production use is via paid (one-off lifetime) key. ToS: you may scrape, copy and modify content returned by the official API endpoints (not the website), may not remove copyright notices, may not use third-party content without permission, and paid users must mention TheMealDB as the data source. Terms do not say plainly that names/links may be stored permanently in a free-tier public app, so it is not used here.",
+      "url": "https://www.themealdb.com/terms_of_use.php",
+      "apiUrl": "https://www.themealdb.com/api.php",
+      "usable": false
+    }
+  },
+  "recipes": {
+    "caesar-salad": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Caesar salad",
+      "url": "https://en.wikipedia.org/wiki/Caesar_salad",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "aglio-olio-spaghetti": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Spaghetti aglio e olio",
+      "url": "https://en.wikipedia.org/wiki/Spaghetti_aglio_e_olio",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "caesar-wrap": null,
+    "bacon-ham-sandwich": null,
+    "guacamole": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Guacamole",
+      "url": "https://en.wikipedia.org/wiki/Guacamole",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "chicken-nuggets": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Chicken nugget",
+      "url": "https://en.wikipedia.org/wiki/Chicken_nugget",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "chicken-strips": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Chicken tenders",
+      "url": "https://en.wikipedia.org/wiki/Chicken_tenders",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background (covers 'chicken strips')",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "chicken-fries": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: BK Chicken Fries",
+      "url": "https://en.wikipedia.org/wiki/BK_Chicken_Fries",
+      "host": "en.wikipedia.org",
+      "supports": "Background on the Chicken Fries product this homemade version imitates",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "bundt-cake": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Bundt cake",
+      "url": "https://en.wikipedia.org/wiki/Bundt_cake",
+      "host": "en.wikipedia.org",
+      "supports": "Dish background",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "tomato-spinach-pasta": null,
+    "veggie-omelette": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Omelette",
+      "url": "https://en.wikipedia.org/wiki/Omelette",
+      "host": "en.wikipedia.org",
+      "supports": "General dish background (veggie omelette is a variation)",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "garlic-butter-salmon": null,
+    "chickpea-curry": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Chana masala",
+      "url": "https://en.wikipedia.org/wiki/Chana_masala",
+      "host": "en.wikipedia.org",
+      "supports": "Closest dish match: chickpea curry in a tomato-based sauce",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "banana-pancakes": {
+      "label": "inspired",
+      "sourceName": "Wikibooks Cookbook: Banana Pancakes",
+      "url": "https://en.wikibooks.org/wiki/Cookbook:Banana_Pancakes",
+      "host": "en.wikibooks.org",
+      "supports": "Dish reference (Wikipedia 'Banana pancakes' only redirects to Pancake)",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "shrimp-fried-rice": {
+      "label": "inspired",
+      "sourceName": "Wikipedia: Fried rice",
+      "url": "https://en.wikipedia.org/wiki/Fried_rice",
+      "host": "en.wikipedia.org",
+      "supports": "General dish background (Wikipedia has no shrimp fried rice article; 'Shrimp fried rice' redirects to a disambiguation page about shrimp paste fried rice)",
+      "license": "CC BY-SA 4.0",
+      "checked": "2026-11-17",
+      "status": "verified"
+    },
+    "greek-yogurt-berry-bowl": null
+  }
+}

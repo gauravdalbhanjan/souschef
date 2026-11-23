@@ -1,28 +1,23 @@
-import { Button } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import { backButtonSx } from './buttonStyles'
+import { FeedbackButton } from './Feedback'
+// Kept here too so existing imports keep working.
+// eslint-disable-next-line react-refresh/only-export-components
+export { backButtonSx }
 
-// Universal back button: the shared glass surface token, so it reads the
-// same on light and dark screens (never an orphaned dark pill).
-export const backButtonSx = {
-  background: 'var(--surface)',
-  border: '1px solid var(--surface-border)',
-  backdropFilter: 'var(--surface-blur)',
-  WebkitBackdropFilter: 'var(--surface-blur)',
-  color: 'var(--fg)',
-  borderRadius: '20px',
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '14px',
-  px: '16px',
-  py: '7px',
-  '&:hover': { background: 'var(--surface-hover)' },
-  '&:focus-visible': { outline: '2px solid var(--accent)', outlineOffset: 2 },
-}
-
-export default function GoBackButton({ onClick }) {
+// Header row on every page: Go Back on the left, Feedback on the right (in
+// line), and any page action (children) just before Feedback.
+export default function GoBackButton({ onClick, children, feedback = true }) {
   return (
-    <Button onClick={onClick} startIcon={<ArrowBackIosNewIcon sx={{ fontSize: '13px !important' }} />} sx={backButtonSx}>
-      Go Back
-    </Button>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+      <Button onClick={onClick} startIcon={<ArrowBackIosNewIcon sx={{ fontSize: '13px !important' }} />} sx={backButtonSx}>
+        Go Back
+      </Button>
+      <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {children}
+        {feedback && <FeedbackButton />}
+      </Box>
+    </Box>
   )
 }

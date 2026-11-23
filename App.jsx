@@ -1,16 +1,15 @@
-import { useState, useEffect, useCallback, useReducer, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { ThemeProvider, CssBaseline, useMediaQuery, useTheme } from '@mui/material'
-import { Box, Typography, CircularProgress } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { makeTheme, C, T, PAD } from './theme'
 import { ColorModeContext, useColorModeState } from './lib/colorMode.js'
 import { useSkyAttribute } from './lib/ambience.js'
-import { api, setGuestMode } from './api'
-import { syncEventStock, clearMemoryPlans } from './lib/events.js'
-import { loadRoutines, clearMemoryRoutines } from './lib/routines.js'
-import { configureStaples, clearMemoryStaples } from './lib/staples.js'
+import { api } from './api'
+import { syncEventStock } from './lib/events.js'
+import { loadRoutines } from './lib/routines.js'
+import { configureStaples } from './lib/staples.js'
+import { onDatasetLoaded } from './lib/dataset.js'
 import { Snackbar } from '@mui/material'
-import { supabase } from './supabaseClient'
-import { useSession } from './useSession'
 
 import ChefHome       from './components/ChefHome'
 import { AMBIENT_BG, AmbientBackground, ListeningOrb, CyclingStatus, softBackdrop } from './components/Ambient'
@@ -21,13 +20,18 @@ import InventoryPage  from './components/InventoryPage'
 import RoutinePage    from './components/RoutinePage'
 import EventsPage     from './components/EventsPage'
 import SplashScreen   from './components/SplashScreen'
-import AuthPage       from './components/AuthPage'
+import SettingsPage   from './components/SettingsPage'
+import PrivacyPage    from './components/PrivacyPage'
+import AboutPage      from './components/AboutPage'
+import { FeedbackDialog } from './components/Feedback'
+import { ProSignupDialog } from './components/ProSignup'
+import LoginPage      from './components/LoginPage'
+import { localStore } from './lib/localStore.js'
 import AddGroceries   from './components/AddGroceries'
 import CartPage       from './components/CartPage'
-import Onboarding     from './components/Onboarding'
 
 // Brief full-screen beat shown while suggestions are (re)computed after a scan
-// or onboarding, so the user never sees a broken/empty state or has to reload.
+// so the user never sees a broken/empty state or has to reload.
 function CuratingOverlay({ show }) {
   if (!show) return null
   return (
@@ -44,16 +48,11 @@ function CuratingOverlay({ show }) {
   )
 }
 
-function FullSpinner() {
-  return (
-    <Box sx={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <CircularProgress size={30} sx={{ color: 'var(--accent-text)' }} aria-label="Loading" />
-    </Box>
-  )
-}
-
 // Every screen sits on the same ambient gradient, so moving between tabs feels
 // like one continuous canvas.
+const GUEST_DAY_KEY = 'souschef_guest_day'
+const localDay = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, device time zone
+
 function Shell({ isMobile, children, navIndex, onNav, onCamera, hideNav = false }) {
   return (
     <Box sx={{
@@ -83,6 +82,10 @@ function InnerApp() {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
 
   const [page, setPage]         = useState('splash')
+  // The login screen shows after the splash once a day; SousChef Lite continues
+  // as guest (accounts are a Pro feature). souschef_guest_day = the local date
+  // guest access was last chosen on this device.
+  const [guestIn, setGuestIn]   = useState(() => localStore.getItem(GUEST_DAY_KEY) === localDay())
   const [navIndex, setNavIndex] = useState(0)
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading]   = useState(true)
@@ -96,22 +99,11 @@ function InnerApp() {
   const [pantryCount, setPantryCount] = useState(0)
   const [pantryItems, setPantryItems] = useState([])
   const [loadError, setLoadError] = useState('')
-  const [, bumpOnboarding] = useReducer(x => x + 1, 0)
 
-  const session = useSession()          // undefined = checking, null = signed out
-  const [guest, setGuest] = useState(false) // in-memory session, nothing stored
-  const uid = session?.user?.id
-  const onboardKey = uid ? `souschef_onboarded_${uid}` : null
 
-  // First-run onboarding, once per user (stored per account on this device).
-  let needsOnboarding = false
-  if (onboardKey) {
-    try { needsOnboarding = !localStorage.getItem(onboardKey) } catch { needsOnboarding = true }
-  }
-
-  const refreshSuggestions = useCallback(async () => {
+  const refreshSuggestions = useCallback(async ({ quiet = false } = {}) => {
     try {
-      setLoading(true)
+      if (!quiet) setLoading(true)
       setLoadError('')
       // Suggestions + pantry together so the dashboard's empty states track the
       // real pantry size.
@@ -119,10 +111,6 @@ function InnerApp() {
       setSuggestions(s)
       setPantryCount(items.length)
       setPantryItems(items)
-      // An existing user on a new device already has a pantry: skip onboarding.
-      if (items.length > 0 && onboardKey) {
-        try { localStorage.setItem(onboardKey, '1') } catch { /* ignore */ }
-      }
     } catch (e) {
       console.warn('load failed:', e.message)
       setSuggestions([])
@@ -130,36 +118,29 @@ function InnerApp() {
     } finally {
       setLoading(false)
     }
-  }, [onboardKey])
+  }, [])
 
-  // (Re)load whenever the signed-in user / guest session changes; clear on exit.
-  const active = Boolean(uid) || guest
-  useEffect(() => {
-    if (active) {
-      refreshSuggestions()
-    } else {
-      setSuggestions([]); setPantryCount(0); setPantryItems([]); setLoadError(''); setLoading(true)
-      setPage(p => (p === 'splash' ? p : 'home')); setNavIndex(0)
-    }
-  }, [active, uid, refreshSuggestions])
+  useEffect(() => { refreshSuggestions() }, [refreshSuggestions])
+  // The recipe dataset loads after the first pantry items; refresh when it lands.
+  useEffect(() => onDatasetLoaded(() => refreshSuggestions({ quiet: true })), [refreshSuggestions])
 
-  // Event plans: per account on this device; guests keep them in memory only.
-  const planKey = uid && !guest ? `souschef_events_${uid}` : null
-  // Routines: per account on this device; guests keep them in memory only.
-  const routineKey = uid && !guest ? `souschef_routines_${uid}` : null
-  // Staples you're out of: same per-account / guest-memory rule. Set before any
-  // data call below so suggestions use the right list.
-  configureStaples(uid && !guest ? `souschef_staples_out_${uid}` : null)
+  // On-device AI (WebLLM) is off in this app: nothing here imports lib/llm.js,
+  // lib/aiIdeas.js or lib/aiTasks.js (kept in the repo, see lib/features.js).
+
+  // Device-local stores (IndexedDB).
+  const planKey = 'souschef_events'
+  const routineKey = 'souschef_routines'
+  configureStaples('souschef_staples_out')
   const [routineVersion, setRoutineVersion] = useState(0)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const routines = useMemo(() => loadRoutines(routineKey), [routineKey, routineVersion, guest])
+  const routines = useMemo(() => loadRoutines(routineKey), [routineKey, routineVersion])
   const [eventNotice, setEventNotice] = useState('')
   const onHome = page === 'home'
 
   // Pantry manager: when a planned event (with "Remind me") is close, add its
   // missing ingredients to the cart. Runs on load and on returning home.
   useEffect(() => {
-    if (!active || !onHome) return
+    if (!onHome) return
     let alive = true
     syncEventStock(planKey, api)
       .then(list => {
@@ -170,25 +151,8 @@ function InnerApp() {
       })
       .catch(err => console.warn('event stock sync skipped:', err.message))
     return () => { alive = false }
-  }, [active, onHome, planKey])
+  }, [onHome, planKey])
 
-  const startGuest = () => {
-    setGuestMode(true)          // route all data calls to a fresh in-memory store
-    setPage('home'); setNavIndex(0)
-    setGuest(true)
-  }
-
-  const signOut = () => {
-    if (guest) {
-      setGuestMode(false)       // discards everything the guest added
-      clearMemoryPlans()
-      clearMemoryRoutines()
-      clearMemoryStaples()
-      setGuest(false)
-      return
-    }
-    supabase.auth.signOut()
-  }
   const goHome = useCallback(() => setPage('home'), [])
 
   // ── Back navigation ───────────────────────────────────────────────────────
@@ -223,6 +187,9 @@ function InnerApp() {
   // Menu (tab 0) always lands on the home landing page: clear the remembered
   // "All recipes" view and remount ChefHome (fresh hero, no old answer).
   const [homeNonce, setHomeNonce] = useState(0)
+  // Slide direction for tab changes (derived when the tab index changes).
+  const [tabSlide, setTabSlide] = useState({ tab: navIndex, dir: null })
+  if (tabSlide.tab !== navIndex) setTabSlide({ tab: navIndex, dir: navIndex > tabSlide.tab ? 'right' : 'left' })
   const handleNav = (i) => {
     if (i === 0) {
       try { sessionStorage.removeItem('souschef_browse') } catch { /* ignore */ }
@@ -245,20 +212,8 @@ function InnerApp() {
     setCurating(false)
   }
 
-  const finishOnboarding = () => {
-    try { localStorage.setItem(onboardKey, '1') } catch { /* ignore */ }
-    bumpOnboarding()
-    setCurating(true)
-    refreshSuggestions().finally(() => setCurating(false))
-  }
-
   if (page === 'splash') return <SplashScreen onDone={goHome} />
-  if (!guest && session === undefined) return <FullSpinner />
-  if (!guest && !session) return <AuthPage onGuest={startGuest} />
-  if (needsOnboarding && loading) return <FullSpinner />
-  // If the database isn't reachable/ready, skip onboarding so the dashboard can
-  // show the setup message instead of a form that can't save.
-  if (needsOnboarding && !loadError) return <Onboarding onDone={finishOnboarding} />
+  if (!guestIn) return <LoginPage onGuest={() => { localStore.setItem('souschef_guest', '1'); localStore.setItem(GUEST_DAY_KEY, localDay()); setGuestIn(true) }} />
 
   if (page === 'recipe') {
     return (
@@ -292,6 +247,19 @@ function InnerApp() {
     )
   }
 
+  if (page === 'settings' || page === 'privacy' || page === 'about') {
+    return (
+      <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+        {page === 'settings'
+          ? <SettingsPage onBack={() => goBack('home')} onOpenPrivacy={() => setPage('privacy')} onOpenAbout={() => setPage('about')} onDataChanged={() => refreshSuggestions()} />
+          : page === 'about' ? <AboutPage onBack={() => goBack('settings')} />
+          : <PrivacyPage onBack={() => goBack('settings')} />}
+        <AddGroceries open={addOpen} onClose={() => setAddOpen(false)} onCommitted={handleCommitted} />
+        <CuratingOverlay show={curating} />
+      </Shell>
+    )
+  }
+
   if (page === 'cart') {
     return (
       <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
@@ -305,6 +273,8 @@ function InnerApp() {
   return (
     <>
       <Shell isMobile={isMobile} navIndex={navIndex} onNav={handleNav} onCamera={() => setAddOpen(true)}>
+        {/* Tabs slide in the way you're going: a later tab from the right, an earlier one from the left. */}
+        <Box key={page} className={tabSlide.dir ? `slide-from-${tabSlide.dir}` : undefined} sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         {page === 'home' && (
           <ChefHome
             key={homeNonce}
@@ -315,16 +285,16 @@ function InnerApp() {
             routines={routines}
             onOpenRoutine={(r) => (r.recipeSlug ? openRecipe({ slug: r.recipeSlug }) : handleNav(2))}
             loadError={loadError}
-            userEmail={guest ? '' : (session?.user?.email || '')}
-            isGuest={guest}
             onOpenRecipe={openRecipe}
             onAddGroceries={(prefill) => setAddOpen(true, prefill || '')}
-            onSignOut={signOut}
+            onOpenSettings={() => setPage('settings')}
+            onViewCart={openCart}
           />
         )}
         {page === 'inventory' && <InventoryPage onBack={() => handleNav(0)} onAddGroceries={() => setAddOpen(true)} onViewCart={openCart} routineKey={routineKey} onStaplesChanged={() => refreshSuggestions()} />}
         {page === 'routine'   && <RoutinePage   onBack={() => handleNav(0)} routineKey={routineKey} onChanged={() => setRoutineVersion(v => v + 1)} />}
-        {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} planKey={planKey} />}
+        {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} planKey={planKey} onViewCart={openCart} />}
+        </Box>
       </Shell>
 
       <AddGroceries
@@ -350,6 +320,9 @@ export default function App() {
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
         <InnerApp />
+        {/* One feedback sheet for every page (lib/feedback.js) */}
+        <FeedbackDialog />
+        <ProSignupDialog />
       </ThemeProvider>
     </ColorModeContext.Provider>
   )

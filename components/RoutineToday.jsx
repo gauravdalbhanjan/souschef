@@ -1,9 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Box, Typography } from '@mui/material'
-import RestaurantIcon from '@mui/icons-material/Restaurant'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { T, PAD } from '../theme'
+import SafeImg, { FallbackThumb } from './SafeImg'
 import { todaysRoutines, fmtTime } from '../lib/routines.js'
 
 const CARD_W = 210
@@ -69,9 +69,7 @@ export default function RoutineToday({ routines, pantry, onOpen }) {
                 sx={{ all: 'unset', boxSizing: 'border-box', cursor: 'pointer', flexShrink: 0, width: CARD_W, display: 'flex', alignItems: 'center', gap: `${PAD}px`, p: `${PAD}px`,
                   scrollSnapAlign: 'start', borderRadius: '14px', background: 'rgba(var(--ink),0.06)', border: '1px solid rgba(var(--ink),0.12)',
                   '&:focus-visible': { outline: '2px solid var(--accent)' } }}>
-                {r.image
-                  ? <Box component="img" src={r.image} alt="" sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
-                  : <Box sx={{ width: 44, height: 44, borderRadius: '10px', flexShrink: 0, background: 'rgba(var(--ink),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RestaurantIcon sx={{ color: 'var(--text-3)' }} /></Box>}
+                <SafeImg src={r.image} search={{ key: `dish-${r.dish}`, name: r.dish }} sx={{ width: 44, height: 44, borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} fallback={<FallbackThumb sx={{ width: 44, height: 44, borderRadius: '10px', flexShrink: 0 }} />} />
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.body}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.dish}</Typography>
                   <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>{fmtTime(r.time)}</Typography>

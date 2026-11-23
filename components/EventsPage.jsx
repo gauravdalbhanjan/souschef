@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
-  Box, Typography, Button, IconButton, Dialog, DialogContent, Snackbar, Menu, MenuItem, ListItemIcon, TextField,
+  Box, Typography, Button, IconButton, Dialog, DialogContent, Snackbar, Menu, MenuItem, ListItemIcon,
 } from '@mui/material'
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import EventAvailableIcon from '@mui/icons-material/EventAvailable'
 import EditCalendarIcon from '@mui/icons-material/EditCalendar'
 import ScheduleIcon from '@mui/icons-material/Schedule'
@@ -14,7 +13,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
 import GoBackButton from './GoBackButton'
-import { C, glass, glassField, T, PAD } from '../theme'
+import CartButton from './CartButton'
+import { C, T, PAD } from '../theme'
 import { resolveDish, ingredientsFor } from '../lib/routines.js'
 import { pillPrimary, pillSecondary, surface, ArrowScroller, softBackdrop, ctaPrimary } from './Ambient'
 import { api } from '../api'
@@ -29,6 +29,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined'
 import { classicsFor } from '../lib/eventDishes.js'
 import { metaFor } from '../lib/recipeMeta.js'
 import SearchIcon from '@mui/icons-material/Search'
+import SafeImg, { FallbackThumb } from './SafeImg'
 import InputBase from '@mui/material/InputBase'
 
 const fmtDate = (d) => d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
@@ -103,15 +104,10 @@ function EventCard({ event, plan, pantry, onPlan, onSchedule, onAddNow, onDelete
   return (
     <Box sx={{ ...surface, overflow: 'hidden', mb: `${PAD * 1.5}px` }}>
       <Box sx={{ position: 'relative', height: 108 }}>
-        {event.img
-          ? <Box component="img" src={event.img} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          : (
-            // Your own event: warm amber-to-indigo backdrop + a celebration mark.
-            <Box aria-hidden sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', pr: '20px',
-              background: 'linear-gradient(135deg, #B45309 0%, #7C2D12 45%, #312E81 100%)' }}>
-              <CelebrationIcon sx={{ fontSize: 56, color: 'rgba(255,255,255,0.28)' }} />
-            </Box>
-          )}
+        {/* Your own event: a photo found by its name (keyless search), else the app's illustration. */}
+        <SafeImg src={event.img} search={event.custom ? { key: `event-${event.id}`, name: event.name, kind: 'event' } : null}
+          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          fallback={<FallbackThumb sx={{ width: '100%', height: '100%' }} />} />
         <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.85) 100%)' }} />
         {event.custom && (
           <IconButton size="small" onClick={() => onDelete(event)} aria-label={`Delete ${event.name}`}
@@ -178,9 +174,7 @@ function DishRow({ name, image, meta, on, onToggle }) {
         background: on ? 'rgba(var(--accent-rgb),0.14)' : 'transparent',
         '&:hover': { background: on ? 'rgba(var(--accent-rgb),0.18)' : 'rgba(var(--ink),0.05)' },
         '&:focus-visible': { outline: '2px solid var(--accent)', outlineOffset: 1 } }}>
-      {image
-        ? <Box component="img" src={image} alt="" sx={{ width: 36, height: 36, borderRadius: '9px', objectFit: 'cover', flexShrink: 0 }} />
-        : <Box sx={{ width: 36, height: 36, borderRadius: '9px', flexShrink: 0, background: 'rgba(var(--ink),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RestaurantIcon sx={{ fontSize: 18, color: 'var(--text-2)' }} /></Box>}
+      <SafeImg src={image} sx={{ width: 36, height: 36, borderRadius: '9px', objectFit: 'cover', flexShrink: 0 }} fallback={<Box sx={{ width: 36, height: 36, borderRadius: '9px', flexShrink: 0, background: 'rgba(var(--ink),0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><RestaurantIcon sx={{ fontSize: 18, color: 'var(--text-2)' }} /></Box>} />
       <Typography sx={{ flex: 1, minWidth: 0, color: 'var(--fg)', fontWeight: 600, fontSize: `${T.body + 1}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</Typography>
       <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px`, flexShrink: 0 }}>{meta}</Typography>
       <Box sx={{ width: 22, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
@@ -372,7 +366,7 @@ function PlanDialog({ event, plan, onClose, onSave, onRemove }) {
   )
 }
 
-export default function EventsPage({ onBack, planKey }) {
+export default function EventsPage({ onBack, planKey, onViewCart }) {
   // Every user starts with nothing selected: no plans until they make them.
   const [plans, setPlans] = useState(() => loadPlans(planKey))
   const [pantry, setPantry] = useState([])
@@ -445,9 +439,12 @@ export default function EventsPage({ onBack, planKey }) {
         <GoBackButton onClick={onBack} />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `${PAD}px`, mt: `${PAD}px` }}>
           <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px` }}>Events</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px` }}>
           <Button onClick={() => setAdding(true)} startIcon={<AddIcon sx={{ fontSize: '16px !important' }} />} sx={pillPrimary}>
             Add event
           </Button>
+            <CartButton onClick={onViewCart} />
+          </Box>
         </Box>
         <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.sub}px` }}>
           Plan a menu, then pick when the missing items go into your cart

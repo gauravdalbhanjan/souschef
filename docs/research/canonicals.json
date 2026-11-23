@@ -1,0 +1,413 @@
+[
+ {
+  "canonical": "apple",
+  "category": "Fruits",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "avocado",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "bacon",
+  "category": "Meat",
+  "recipeUnits": [
+   "slice"
+  ]
+ },
+ {
+  "canonical": "banana",
+  "category": "Fruits",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "basil",
+  "category": "Veggies",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "beans",
+  "category": "Staples",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "beef",
+  "category": "Meat",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "bell pepper",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "berries",
+  "category": "Fruits",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "black pepper",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "bread",
+  "category": "Staples",
+  "recipeUnits": [
+   "slice"
+  ]
+ },
+ {
+  "canonical": "broccoli",
+  "category": "Veggies",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "butter",
+  "category": "Dairy",
+  "recipeUnits": [
+   "tbsp",
+   "g"
+  ]
+ },
+ {
+  "canonical": "carrot",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "cheese",
+  "category": "Dairy",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "chicken",
+  "category": "Meat",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "chickpeas",
+  "category": "Meat",
+  "recipeUnits": [
+   "can"
+  ]
+ },
+ {
+  "canonical": "chili",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "cilantro",
+  "category": "Veggies",
+  "recipeUnits": [
+   "bunch"
+  ]
+ },
+ {
+  "canonical": "coffee",
+  "category": "Staples",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "cream",
+  "category": "Dairy",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "croutons",
+  "category": "Staples",
+  "recipeUnits": [
+   "cup"
+  ]
+ },
+ {
+  "canonical": "cucumber",
+  "category": "Veggies",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "cumin",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "dijon mustard",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "egg",
+  "category": "Meat",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "flour",
+  "category": "Staples",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "garlic",
+  "category": "Veggies",
+  "recipeUnits": [
+   "clove"
+  ]
+ },
+ {
+  "canonical": "garlic powder",
+  "category": "Spices",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "ginger",
+  "category": "Veggies",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "grapes",
+  "category": "Fruits",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "honey",
+  "category": "Spices",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "lemon",
+  "category": "Fruits",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "lettuce",
+  "category": "Veggies",
+  "recipeUnits": [
+   "head"
+  ]
+ },
+ {
+  "canonical": "lime",
+  "category": "Fruits",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "mango",
+  "category": "Fruits",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "mayonnaise",
+  "category": "Dairy",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "milk",
+  "category": "Dairy",
+  "recipeUnits": [
+   "ml"
+  ]
+ },
+ {
+  "canonical": "mushroom",
+  "category": "Veggies",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "oats",
+  "category": "Staples",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "oil",
+  "category": "Spices",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "olive oil",
+  "category": "Spices",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "onion",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "orange",
+  "category": "Fruits",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "paprika",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "parmesan",
+  "category": "Dairy",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "pasta",
+  "category": "Staples",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "pork",
+  "category": "Meat",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "potato",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "rice",
+  "category": "Staples",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "salmon",
+  "category": "Meat",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "salt",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "shrimp",
+  "category": "Meat",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "soy sauce",
+  "category": "Spices",
+  "recipeUnits": [
+   "tbsp"
+  ]
+ },
+ {
+  "canonical": "spinach",
+  "category": "Veggies",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "sugar",
+  "category": "Staples",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "tea",
+  "category": "Staples",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "tofu",
+  "category": "Meat",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "tomato",
+  "category": "Veggies",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "tortilla",
+  "category": "Staples",
+  "recipeUnits": [
+   "unit"
+  ]
+ },
+ {
+  "canonical": "vinegar",
+  "category": "Spices",
+  "recipeUnits": []
+ },
+ {
+  "canonical": "worcestershire",
+  "category": "Spices",
+  "recipeUnits": [
+   "tsp"
+  ]
+ },
+ {
+  "canonical": "yogurt",
+  "category": "Dairy",
+  "recipeUnits": [
+   "g"
+  ]
+ },
+ {
+  "canonical": "zucchini",
+  "category": "Veggies",
+  "recipeUnits": []
+ }
+]

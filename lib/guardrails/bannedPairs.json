@@ -1,0 +1,8 @@
+{
+  "_note": "Owner-editable list of ingredient pairs that make an AI recipe implausible. Each pair uses canonical names from lib/normalize.js. Starter list only; edit freely.",
+  "pairs": [
+    ["salmon", "berries"], ["salmon", "banana"], ["salmon", "honey"], ["shrimp", "banana"], ["shrimp", "berries"], ["shrimp", "yogurt"],
+    ["bacon", "yogurt"], ["chicken", "berries"], ["beef", "berries"], ["pork", "berries"], ["tuna", "chocolate"], ["coffee", "salmon"],
+    ["coffee", "shrimp"], ["tea", "beef"], ["mayonnaise", "berries"], ["soy sauce", "berries"], ["worcestershire", "banana"], ["vinegar", "yogurt"]
+  ]
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+/* Montserrat is bundled with the app (@fontsource, OFL-1.1): no request to Google. Imported in main.jsx. */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -99,3 +99,10 @@ body {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(245,166,35,.7); border-radius: 2px; }
+
+/* Screen changes slide in: from the right going forward, from the left going back. */
+@keyframes slide-from-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes slide-from-left { from { transform: translateX(-100%); } to { transform: none; } }
+.slide-from-right { animation: slide-from-right .28s cubic-bezier(.2,.7,.2,1) both; }
+.slide-from-left { animation: slide-from-left .28s cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .slide-from-right, .slide-from-left { animation: none; } }

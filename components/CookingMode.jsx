@@ -28,6 +28,12 @@ import { ListeningOrb, ArrowScroller, glassSurface, ctaPrimary, ctaSecondary, YE
 import { backButtonSx } from './GoBackButton'
 import { timersInStep, meanwhileFor, fmtDuration, clock } from '../lib/cookFlow.js'
 import { buildScript, itemsIn } from '../lib/cookChat.js'
+import { localStore } from '../lib/localStore.js'
+import { KitchenSafety, SourceMark } from './RecipeExtras'
+import { sourceList, getSource } from '../lib/guardrails/sources.js'
+import { CueIcon, CueTile } from './CueIcon'
+import { ingredientIcon, stepCues, nutritionLine } from '../lib/cookCues.js'
+import { ingredientNutrition } from '../lib/guardrails/nutrition.js'
 
 const READ_KEY = 'souschef_read_aloud'
 const plainText = (ins) => (ins.parts ? ins.text : `${ins.text || ''}${ins.highlight || ''}${ins.after || ''}`)
@@ -106,15 +112,20 @@ function TimerChip({ t, now, onDismiss }) {
 function IngredientRow({ ing }) {
   const have = ing.have || ing.staple
   const status = ing.staple ? 'Staple' : have ? 'In pantry' : 'Missing'
+  const n = nutritionLine(ingredientNutrition(ing))
   return (
-    <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, minHeight: 36, py: '2px' }}>
-      <Box aria-hidden sx={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: have ? 'rgba(34,197,94,0.18)' : 'transparent', border: have ? 'none' : '2px solid var(--danger)' }}>
-        {have && <CheckIcon sx={{ fontSize: 13, color: 'var(--success)' }} />}
+    <Box component="li" sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, minHeight: 40, py: '2px' }}>
+      <CueIcon cue={ingredientIcon(ing)} size={30} badge={
+        <Box aria-hidden sx={{ position: 'absolute', right: -3, bottom: -3, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: have ? 'var(--success)' : 'var(--paper)', border: have ? '2px solid var(--paper)' : '2px solid var(--danger)' }}>
+          {have && <CheckIcon sx={{ fontSize: 9, color: '#fff' }} />}
+        </Box>} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ color: 'var(--fg)', fontWeight: 700, fontSize: `${T.body + 1}px`, lineHeight: 1.25 }}>{ing.display}</Typography>
+        {n.kcal != null && <Typography title={n.full} aria-label={n.full} sx={{ color: 'var(--text-2)', fontSize: `${T.sub - 1}px`, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{n.kcal} kcal</Typography>}
       </Box>
-      <Typography sx={{ flex: 1, minWidth: 0, color: 'var(--fg)', fontWeight: 700, fontSize: `${T.body + 1}px`, lineHeight: 1.25 }}>{ing.display}</Typography>
       <Typography sx={{ color: 'var(--text-2)', fontSize: `${T.body}px`, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-        {ing.quantity} {unitLabel(ing.unit)}
+        {Number(ing.quantity) > 0 ? <>{ing.quantity} {unitLabel(ing.unit)}</> : 'to taste'}
       </Typography>
       <Box sx={{ width: 84, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
         <Typography sx={{ color: have ? 'var(--text-2)' : 'var(--danger)', fontSize: `${T.sub}px`, fontWeight: have ? 600 : 700 }}>{status}</Typography>
@@ -129,6 +140,8 @@ const bodyText = { color: 'var(--fg)', fontSize: `${T.title + 3}px`, lineHeight:
 
 const HOME_DELAY = 3 // seconds on the success state before going home
 
+const safetySources = sourceList()
+
 export default function CookingMode({ slug, session, onBack, onHome, onFinished }) {
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -141,7 +154,7 @@ export default function CookingMode({ slug, session, onBack, onHome, onFinished 
   const [syncing, setSyncing] = useState(false)
   const [synced, setSynced] = useState(null)  // { used: [...] } after Update pantry
   const [error, setError] = useState('')
-  const [readAloud, setReadAloud] = useState(() => { try { return localStorage.getItem(READ_KEY) === '1' } catch { return false } })
+  const [readAloud, setReadAloud] = useState(() => { try { return localStore.getItem(READ_KEY) === '1' } catch { return false } })
   const stepAlerted = useRef(false)
   const alerted = useRef(new Set())
   const blockRefs = useRef({})
@@ -247,7 +260,7 @@ export default function CookingMode({ slug, session, onBack, onHome, onFinished 
   const toggleRead = () => {
     const v = !readAloud
     setReadAloud(v)
-    try { localStorage.setItem(READ_KEY, v ? '1' : '0') } catch { /* ignore */ }
+    try { localStore.setItem(READ_KEY, v ? '1' : '0') } catch { /* ignore */ }
     if (!v) stopSpeech()
   }
 
@@ -364,6 +377,12 @@ export default function CookingMode({ slug, session, onBack, onHome, onFinished 
           </Box>
         )}
 
+        {/* Fixed kitchen-safety text (written by us), with sources */}
+        <Box component="section" aria-labelledby="safety-title" sx={{ mb: `${PAD * 3}px` }}>
+          <Typography id="safety-title" component="h2" sx={{ ...sectionTitle, mb: `${PAD}px` }}>Kitchen safety</Typography>
+          <KitchenSafety markFor={(id) => { const src = getSource(id); return <SourceMark n={src ? safetySources.add(src) : null} src={src} /> }} />
+        </Box>
+
         <Box component="section" aria-labelledby="cook-title">
           <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: `${PAD}px`, mb: `${PAD}px` }}>
             <Typography id="cook-title" component="h2" sx={sectionTitle}>Cooking</Typography>
@@ -387,8 +406,44 @@ export default function CookingMode({ slug, session, onBack, onHome, onFinished 
                   <Typography component="h3" sx={{ flex: 1, minWidth: 0, color: 'var(--fg)', fontWeight: 800, fontSize: `${T.title + 4}px`, lineHeight: 1.25 }}>{s.section}</Typography>
                   {s.duration > 0 && <Typography sx={{ ...sectionMeta, flexShrink: 0 }}>{fmtDuration(s.duration)}</Typography>}
                 </Box>
+                {/* Icon cues first: what to do, with what, what to watch (lib/cookCues.js) */}
+                {(() => {
+                  const cues = stepCues(s, ingredients)
+                  const tiles = [...cues.actions.map(c => [c, 'action']), ...cues.tools.map(c => [c, 'tool']), ...cues.states.filter(c => c.key !== 'temp').map(c => [c, 'state'])]
+                  const temps = cues.states.filter(c => c.key === 'temp')
+                  const uses = cues.uses.map(u => ingredients.find(x => x.canonical === u.canonical) || u)
+                  return (
+                    <Box sx={{ pl: '38px', mt: `${PAD}px` }}>
+                      {tiles.length > 0 && (
+                        <Box role="list" aria-label="Step at a glance" sx={{ display: 'flex', flexWrap: 'wrap', gap: `${PAD}px` }}>
+                          {tiles.map(([c, tone]) => <Box role="listitem" key={`${tone}-${c.key}`}><CueTile cue={c} tone={tone} size={active ? 48 : 38} /></Box>)}
+                        </Box>
+                      )}
+                      {uses.length > 0 && (
+                        <Box component="ul" aria-label="Ingredients for this step" sx={{ listStyle: 'none', p: 0, m: 0, mt: `${PAD}px`, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {uses.map(u => (
+                            <Box component="li" key={u.canonical} sx={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: 34, pl: '4px', pr: '12px', borderRadius: '17px',
+                              background: 'var(--surface-strong)', border: '1px solid var(--surface-border)' }}>
+                              <CueIcon cue={ingredientIcon(u)} size={26} />
+                              <Typography sx={{ color: 'var(--fg)', fontSize: `${T.body}px`, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                {Number(u.quantity) > 0 ? `${u.quantity} ${unitLabel(u.unit)} ` : ''}{u.display.toLowerCase()}{Number(u.quantity) > 0 ? '' : ' (to taste)'}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      {temps.map(c => (
+                        <Box key={c.label} role="note" aria-label={c.detail} sx={{ display: 'flex', alignItems: 'center', gap: `${PAD}px`, mt: `${PAD}px`, p: `${PAD}px`, borderRadius: '12px', background: 'rgba(239,68,68,0.10)' }}>
+                          <CueIcon cue={c} size={30} tone="safety" />
+                          <Typography sx={{ color: 'var(--fg)', fontSize: `${T.body}px`, fontWeight: 600, lineHeight: 1.4 }}>{c.detail}</Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )
+                })()}
                 <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, mt: `${PAD}px`, pl: '38px' }}>
-                  {s.instructions.map((ins, k) => (
+                  {/* Amounts and safety lines are shown as cues above, not repeated here. */}
+                  {s.instructions.filter(ins => !/^You.ll need:|^Safety:/i.test(ins.text)).map((ins, k) => (
                     <Box component="li" key={k} sx={{ ...bodyText, fontSize: active ? `${T.title + 3}px` : `${T.body + 2}px`, color: active ? 'var(--fg)' : 'var(--text-2)', mb: `${PAD * 0.75}px`, '&:last-child': { mb: 0 } }}>
                       <StepText ins={ins} />
                     </Box>

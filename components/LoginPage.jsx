@@ -44,7 +44,7 @@ export default function LoginPage({ onGuest }) {
         </Box>
 
         {/* Primary: the way into SousChef Lite */}
-        <Button type="button" fullWidth onClick={onGuest} autoFocus
+        <Button type="button" fullWidth onClick={onGuest} disableFocusRipple
           sx={{ background: YELLOW, color: YELLOW_FG, borderRadius: '30px', textTransform: 'none', fontWeight: 800, fontSize: `${T.title + 3}px`, py: `${PAD * 1.5}px`,
             '&:hover': { background: 'var(--accent-strong)' }, '&:focus-visible': { outline: '2px solid var(--fg)', outlineOffset: 2 } }}>
           SousChef {TIER} &mdash; Guest access

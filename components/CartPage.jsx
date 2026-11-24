@@ -71,7 +71,7 @@ export default function CartPage({ onBack }) {
   return (
     // Grows to fill the screen; only the item list scrolls.
     <Box sx={{ flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
-      <Box sx={{ px: `${PAD * 1.5}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: `${PAD * 1.5}px`, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
       </Box>
 

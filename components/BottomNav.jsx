@@ -11,8 +11,8 @@ import { T, PAD } from '../theme'
 const NO_HOVER = typeof window !== 'undefined' && !!window.matchMedia?.('(hover: none)').matches
 
 // Layout (index.css: --nav-h, --rail-w):
-//   under 900 px  tab bar pinned to the bottom (position: fixed; bottom: 0),
-//                 flush above the home indicator (padding-bottom: safe-area)
+//   under 900 px  tab island pinned to the bottom (position: fixed; bottom: 0),
+//                 8 px from the bottom and side edges
 //   900 px and up navigation rail pinned to the left
 export const RAIL_QUERY = '(min-width:900px)'
 
@@ -71,12 +71,7 @@ export default function BottomNav({ active = 0, onChange, onCamera }) {
       position: 'fixed', top: 0, bottom: 0, left: 0, width: 'var(--rail-w)', zIndex: 1100, m: 0, boxSizing: 'border-box',
       pt: `calc(${PAD * 2}px + env(safe-area-inset-top, 0px))`, pb: `calc(${PAD * 2}px + env(safe-area-inset-bottom, 0px))`,
       pl: `calc(${PAD}px + env(safe-area-inset-left, 0px))`, pr: `${PAD}px`, display: 'flex', alignItems: 'center', // rail centred vertically
-    } : {
-      position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1100, m: 0, boxSizing: 'border-box',
-      px: `calc(${PAD * 1.5}px + env(safe-area-inset-left, 0px))`, pt: `${PAD}px`,
-      // flush above the iPhone home indicator
-      pb: `max(${PAD}px, env(safe-area-inset-bottom, 0px))`,
-    }}>
+    } : { boxSizing: 'border-box' /* position + 8 px edge gap: .app-tabbar in index.css */ }}>
       <Paper component="nav" aria-label="Main" elevation={0} sx={{ background: 'var(--bar)', border: '1px solid var(--surface-border)', backdropFilter: 'var(--surface-blur)',
         WebkitBackdropFilter: 'var(--surface-blur)', borderRadius: '22px', boxShadow: 'var(--shadow)', display: 'flex', p: `${PAD}px`,
         ...(rail

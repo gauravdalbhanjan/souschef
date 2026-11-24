@@ -31,7 +31,7 @@ function ClocheIcon({ size = 64, color = '#aaa' }) {
 // "Cooking made easy" subtitle centered below
 // tier: optional pill on the "Sous" line (off by default; the tier shows
 // next to the version in Settings and About).
-export function Logo({ size = 'large', splashMode: _splashMode = false, tier = null }) {
+export function Logo({ size = 'large', splashMode = false, tier = null }) {
   // On splash: greys (matching the reference image exactly)
   // On login:  amber accent for "Sous" + icon
   // Theme tokens, so the wordmark stays sharp on light and dark.
@@ -48,7 +48,7 @@ export function Logo({ size = 'large', splashMode: _splashMode = false, tier = n
   return (
     // Adaptive wrapper: a soft drop-shadow lifts the hat + wordmark off any canvas.
     <Box role="img" aria-label={`SousChef${tier ? ` ${tier}` : ''}, cooking made easy`}
-      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.22))' }}>
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', filter: splashMode ? 'none' : 'drop-shadow(0 2px 10px rgba(0,0,0,0.22))' }}>
 
       {/* Row: "Sous" sits top-left relative to the chef text */}
       <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-end' }}>
@@ -129,31 +129,34 @@ export function Logo({ size = 'large', splashMode: _splashMode = false, tier = n
 }
 
 // ── Splash screen ──────────────────────────────────────────────────────────
-// Fade in 1.5s → hold 1s → fade out 0.5s → total ~3s
+// Logo fades in 1.5s → hold → the whole splash (canvas + logo) dissolves 0.5s
+// → removed. The overlay itself fades (not just the logo) and nothing on it
+// uses filter / backdrop-filter: iOS could leave a filtered logo painted after
+// its parent faded out.
 export default function SplashScreen({ onDone }) {
-  const [opacity, setOpacity] = useState(0)
+  const [phase, setPhase] = useState('start') // start | in | out
 
   useEffect(() => {
-    const t1 = setTimeout(() => setOpacity(1),    50)    // start fade-in
-    const t2 = setTimeout(() => setOpacity(0),  2500)    // start fade-out
-    const t3 = setTimeout(() => onDone(),       3000)    // done
+    const t1 = setTimeout(() => setPhase('in'),  50)    // logo fades in
+    const t2 = setTimeout(() => setPhase('out'), 2500)   // everything dissolves
+    const t3 = setTimeout(() => onDone(),        3000)   // done (unmounted)
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
   }, [onDone])
 
   return (
-    <Box sx={{
+    <Box aria-hidden={phase === 'out'} sx={{
       position: 'fixed', inset: 0,
       background: 'var(--canvas)', backgroundColor: 'var(--canvas-base)', // same canvas as the app
-      backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 9999,
+      opacity: phase === 'out' ? 0 : 1,
+      visibility: phase === 'out' ? 'hidden' : 'visible',
+      transition: phase === 'out' ? 'opacity 0.5s ease-out, visibility 0s linear 0.5s' : 'none',
+      pointerEvents: phase === 'out' ? 'none' : 'auto',
     }}>
-      <Box sx={{
-        opacity,
-        transition: opacity === 1 ? 'opacity 1.5s ease-in' : 'opacity 0.5s ease-out',
-      }}>
+      <Box sx={{ opacity: phase === 'start' ? 0 : 1, transition: 'opacity 1.5s ease-in' }}>
         <Logo size="large" splashMode />
       </Box>
     </Box>

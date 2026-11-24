@@ -8,10 +8,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <!-- Home-screen app: full screen, content under a translucent status bar (safe-area padding handles it) -->
+    <!-- Home-screen app. No "black-translucent" status bar: since iOS 26 the system
+         draws a blur over the top of pages that run under a translucent status bar.
+         The default style gives an opaque status bar tinted by theme-color (set per
+         theme in theme-init.js / colorMode.js), and the page starts below it. -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SousChef" />
     <meta name="description" content="Recipe and pantry companion: track your pantry, cook from what you have, follow clear steps." />
     <meta property="og:title" content="SousChef — Cooking made easy" />
@@ -21,7 +23,7 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0e14" />
+    <meta name="theme-color" content="#0B0F19" />
     <title>SousChef — Cooking made easy</title>
     <!-- Colour mode before first paint (blocking on purpose; same origin, no inline script). -->
     <script src="/theme-init.js"></script>

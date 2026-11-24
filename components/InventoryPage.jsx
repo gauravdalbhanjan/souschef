@@ -350,7 +350,7 @@ export default function InventoryPage({ onBack, onAddGroceries, onViewCart, rout
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
       {/* Header: same layout as Routine / Events. Go Back on its own line,
           then the title with the page action (cart) on the right. */}
-      <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: `${PAD * 2}px`, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `${PAD}px`, mt: `${PAD}px` }}>
           <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px` }}>Pantry</Typography>

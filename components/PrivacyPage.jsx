@@ -20,14 +20,16 @@ function Src({ id }) {
   return <Box component="a" href={s.url} target="_blank" rel="noopener noreferrer" aria-label={`${s.name} (external site, opens in a new tab)`} sx={{ color: 'var(--accent-text)', fontWeight: 700 }}>{s.name} ↗</Box>
 }
 
-export default function PrivacyPage({ onBack }) {
+export default function PrivacyPage({ onBack, inDrawer = false }) {
+  // In the Settings drawer (iPad / laptop) the content gets more side room.
+  const sidePad = inDrawer ? `${PAD * 3}px` : `${PAD * 2}px`
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: sidePad, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px`, mt: `${PAD}px` }}>Privacy</Typography>
       </Box>
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', px: sidePad, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
         <Box sx={{ ...surface, p: `${PAD * 1.5}px` }}>
           <Typography sx={{ ...p, mb: 0 }}>
             SousChef has no accounts. Your pantry, cart, routines, events and settings are saved in this browser on this device.

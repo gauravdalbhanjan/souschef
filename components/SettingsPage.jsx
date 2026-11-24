@@ -56,7 +56,9 @@ function Row({ Icon, label, onClick, last, popup }) {
   )
 }
 
-export default function SettingsPage({ onBack, onOpenPrivacy, onOpenAbout, onDataChanged }) {
+export default function SettingsPage({ onBack, onOpenPrivacy, onOpenAbout, onDataChanged, inDrawer = false }) {
+  // In the Settings drawer (iPad / laptop) the content gets more side room.
+  const sidePad = inDrawer ? `${PAD * 3}px` : `${PAD * 2}px`
   const [snack, setSnack] = useState('')
   const [preview, setPreview] = useState(null) // { title, json, file }
   const [dl, setDl] = useState(downloads())
@@ -85,11 +87,11 @@ export default function SettingsPage({ onBack, onOpenPrivacy, onOpenAbout, onDat
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: sidePad, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px`, mt: `${PAD}px` }}>Settings</Typography>
       </Box>
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', px: sidePad, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
         {/* Downloads */}
         <Typography component="h2" sx={{ ...h2, mt: `${PAD}px` }}>Downloads</Typography>
         <Box sx={{ ...surface, p: `${PAD * 1.5}px` }}>

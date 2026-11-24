@@ -100,33 +100,53 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(245,166,35,.7); border-radius: 2px; }
 
-/* Screen changes slide in: from the right going forward, from the left going back. */
+/* Screen changes slide in from the side the new tab is on: right/left for the
+   bottom tab bar, bottom/top for the side rail (tabs listed top to bottom). */
 @keyframes slide-from-right { from { transform: translateX(100%); } to { transform: none; } }
 @keyframes slide-from-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-from-bottom { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes slide-from-top { from { transform: translateY(-100%); } to { transform: none; } }
 .slide-from-right { animation: slide-from-right .28s cubic-bezier(.2,.7,.2,1) both; }
 .slide-from-left { animation: slide-from-left .28s cubic-bezier(.2,.7,.2,1) both; }
-@media (prefers-reduced-motion: reduce) { .slide-from-right, .slide-from-left { animation: none; } }
+.slide-from-bottom { animation: slide-from-bottom .28s cubic-bezier(.2,.7,.2,1) both; }
+.slide-from-top { animation: slide-from-top .28s cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .slide-from-right, .slide-from-left, .slide-from-bottom, .slide-from-top { animation: none; } }
 
-/* ── App layout: fluid, safe-area aware ─────────────────────────────────────
-   Phones/tablets: content above a tab bar pinned to the bottom (BottomNav
-   measures itself into --nav-h). 900 px and up: a navigation rail on the left
-   and the content centred beside it. */
-:root { --nav-h: 0px; --rail-w: 104px; }
+/* ── App layout: full viewport, fluid, safe-area aware ──────────────────────
+   The frame is pinned to all four edges of the viewport (100% of the visible
+   height in browsers and as an installed home-screen app). Content starts 8 px
+   below the status bar / notch. Phones/tablets: a tab island pinned 8 px above
+   the bottom edge (BottomNav measures it into --nav-h). 900 px and up: a
+   navigation rail on the left, content centred beside it. */
+:root { --nav-h: 0px; --rail-w: 104px; --gap: 8px; }
+html, body { height: 100%; overflow: hidden; background: var(--canvas-base); }
 .app-shell {
-  position: relative; box-sizing: border-box; width: 100%;
-  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-  padding-top: env(safe-area-inset-top, 0px); /* clear the notch / status bar */
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box;
+  display: flex; flex-direction: column; overflow: hidden;
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--gap)); /* 8 px below the status-bar blur */
 }
-@supports (height: 100svh) { .app-shell { height: 100svh; } }
 .app-main {
   position: relative; z-index: 1; box-sizing: border-box;
   flex: 1; min-height: 0; width: 100%; max-width: 1080px; margin: 0 auto;
   display: flex; flex-direction: column;
   padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
-  padding-bottom: var(--nav-h); /* room for the fixed tab bar */
+  padding-bottom: var(--nav-h); /* room for the fixed tab island */
 }
 .app-shell--no-nav .app-main { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Tab island: same size as before, 8 px from the bottom and side edges. */
+.app-tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1100; margin: 0;
+  padding: 0 calc(var(--gap) + env(safe-area-inset-right, 0px)) var(--gap) calc(var(--gap) + env(safe-area-inset-left, 0px));
+}
 @media (min-width: 900px) {
   .app-shell:not(.app-shell--no-nav) { padding-left: var(--rail-w); }
   .app-main { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
+
+/* Installed home-screen app. iOS 26 reports the viewport shorter than the screen
+   by env(safe-area-inset-top) when the app runs under a translucent status bar
+   (apps added before the status-bar change). The frame reaches the real bottom
+   edge and the tab island / rail sit on the frame, not the short viewport. With
+   the default opaque status bar the top inset is 0 and this changes nothing. */
+html[data-standalone] .app-shell { bottom: calc(0px - env(safe-area-inset-top, 0px)); }
+html[data-standalone] .app-tabbar, html[data-standalone] .app-rail { position: absolute; }

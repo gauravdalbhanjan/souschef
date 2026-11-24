@@ -435,7 +435,7 @@ export default function EventsPage({ onBack, planKey, onViewCart }) {
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: `${PAD * 2}px`, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `${PAD}px`, mt: `${PAD}px` }}>
           <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px` }}>Events</Typography>

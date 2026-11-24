@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { ThemeProvider, CssBaseline } from '@mui/material'
+import { ThemeProvider, CssBaseline, useMediaQuery, Drawer } from '@mui/material'
+import { RAIL_QUERY } from './components/BottomNav'
 import { Box, Typography } from '@mui/material'
 import { makeTheme, T, PAD } from './theme'
 import { ColorModeContext, useColorModeState } from './lib/colorMode.js'
@@ -51,6 +52,9 @@ function CuratingOverlay({ show }) {
 // Every screen sits on the same ambient gradient, so moving between tabs feels
 // like one continuous canvas.
 const GUEST_DAY_KEY = 'souschef_guest_day'
+const SETTINGS_DRAWER_QUERY = '(min-width:768px)'
+// Settings drawer: fits the Settings content (pill row + padding), never wider than the screen.
+const DRAWER_W = 'min(420px, 100vw)'
 const localDay = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, device time zone
 
 // Fluid app frame (index.css .app-shell / .app-main): full width on every
@@ -178,8 +182,19 @@ function InnerApp() {
   // "All recipes" view and remount ChefHome (fresh hero, no old answer).
   const [homeNonce, setHomeNonce] = useState(0)
   // Slide direction for tab changes (derived when the tab index changes).
+  // Bottom tab bar (tabs left to right): from the right / left. Side rail (tabs
+  // top to bottom): from the bottom / top.
+  const rail = useMediaQuery(RAIL_QUERY)
   const [tabSlide, setTabSlide] = useState({ tab: navIndex, dir: null })
-  if (tabSlide.tab !== navIndex) setTabSlide({ tab: navIndex, dir: navIndex > tabSlide.tab ? 'right' : 'left' })
+  if (tabSlide.tab !== navIndex) {
+    const later = navIndex > tabSlide.tab
+    setTabSlide({ tab: navIndex, dir: rail ? (later ? 'bottom' : 'top') : (later ? 'right' : 'left') })
+  }
+  // iPad / laptop: Settings opens as a drawer from the right over the current
+  // screen (Privacy and About open inside it). Phones: full pages as before.
+  const wideSettings = useMediaQuery(SETTINGS_DRAWER_QUERY)
+  const [drawer, setDrawer] = useState(null) // null | 'settings' | 'privacy' | 'about'
+  const openSettings = () => (wideSettings ? setDrawer('settings') : setPage('settings'))
   const handleNav = (i) => {
     if (i === 0) {
       try { sessionStorage.removeItem('souschef_browse') } catch { /* ignore */ }
@@ -277,7 +292,7 @@ function InnerApp() {
             loadError={loadError}
             onOpenRecipe={openRecipe}
             onAddGroceries={(prefill) => setAddOpen(true, prefill || '')}
-            onOpenSettings={() => setPage('settings')}
+            onOpenSettings={openSettings}
             onViewCart={openCart}
           />
         )}
@@ -286,6 +301,15 @@ function InnerApp() {
         {page === 'events'    && <EventsPage    onBack={() => handleNav(0)} planKey={planKey} onViewCart={openCart} />}
         </Box>
       </Shell>
+
+      <Drawer anchor="right" open={!!drawer && wideSettings} onClose={() => setDrawer(null)} aria-label="Settings"
+        slotProps={{ paper: { sx: { width: DRAWER_W, background: AMBIENT_BG, backgroundColor: 'var(--canvas-base)', borderLeft: '1px solid var(--surface-border)',
+          boxShadow: '-24px 0 60px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column',
+          pt: 'calc(env(safe-area-inset-top, 0px) + 8px)', pb: 'env(safe-area-inset-bottom, 0px)', pr: 'env(safe-area-inset-right, 0px)' } } }}>
+        {drawer === 'settings' && <SettingsPage inDrawer onBack={() => setDrawer(null)} onOpenPrivacy={() => setDrawer('privacy')} onOpenAbout={() => setDrawer('about')} onDataChanged={() => refreshSuggestions()} />}
+        {drawer === 'privacy' && <PrivacyPage inDrawer onBack={() => setDrawer('settings')} />}
+        {drawer === 'about' && <AboutPage inDrawer onBack={() => setDrawer('settings')} />}
+      </Drawer>
 
       <AddGroceries
         open={addOpen}

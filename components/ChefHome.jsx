@@ -200,7 +200,7 @@ export default function ChefHome({
   // ── Browse-all view (the full grid + filters, one tap away) ───────────────
   if (browse) {
     return (
-      <Box key="browse" className={slideClass} sx={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, pt: `${PAD * 1.5}px` }}>
+      <Box key="browse" className={slideClass} sx={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, mt: `-${PAD}px`, pt: `${PAD}px` }}>
         <Box sx={{ px: `${SIDE}px`, mb: `${PAD}px` }}>
           <GoBackButton onClick={() => setBrowse(false)} />
           <Typography component="h1" sx={{ color: 'var(--fg)', fontSize: `${T.heading + 2}px`, fontWeight: 800, mt: `${PAD}px` }}>All recipes</Typography>
@@ -235,9 +235,10 @@ export default function ChefHome({
 
   // ── Assistant canvas ───────────────────────────────────────────────────────
   return (
-    <Box key="home" className={slideClass} sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+    <Box key="home" className={slideClass} sx={{ flex: 1, mt: `-${PAD}px`, pt: `${PAD}px`, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+      {/* mt/pt: the scroll area starts 8 px higher (in the frame's top gap) so the cart badge above the top line isn't clipped */}
       {/* Quiet top line: session + sign out */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${SIDE}px`, pt: `${PAD}px` }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: `${SIDE}px`, pt: 0 }}>
         <Typography sx={{ color: 'var(--text-3)', fontSize: `${T.sub}px`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           Saved on this device
         </Typography>

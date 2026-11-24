@@ -12,14 +12,16 @@ import { ProSignupLink } from './ProSignup'
 const h2 = { color: 'var(--fg)', fontWeight: 800, fontSize: `${T.title + 3}px`, mt: `${PAD * 3}px`, mb: `${PAD}px` }
 const p = { color: 'var(--text-2)', fontSize: `${T.body}px`, lineHeight: 1.6, mb: `${PAD}px` }
 
-export default function AboutPage({ onBack }) {
+export default function AboutPage({ onBack, inDrawer = false }) {
+  // In the Settings drawer (iPad / laptop) the content gets more side room.
+  const sidePad = inDrawer ? `${PAD * 3}px` : `${PAD * 2}px`
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Box sx={{ px: `${PAD * 2}px`, pt: `${PAD * 1.5}px`, pb: `${PAD}px`, flexShrink: 0 }}>
+      <Box sx={{ px: sidePad, pt: 0, pb: `${PAD}px`, flexShrink: 0 }}>
         <GoBackButton onClick={onBack} />
         <Typography component="h1" sx={{ color: 'var(--fg)', fontWeight: 800, fontSize: `${T.heading + 2}px`, mt: `${PAD}px` }}>About {APP_NAME}</Typography>
       </Box>
-      <Box sx={{ flex: 1, overflowY: 'auto', px: `${PAD * 2}px`, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', px: sidePad, pb: `${PAD * 3}px`, '&::-webkit-scrollbar': { display: 'none' } }}>
         <Box sx={{ ...surface, p: `${PAD * 1.5}px` }}>
           <Typography sx={{ ...p, mb: 0 }}>
             SousChef is a recipe and pantry companion designed to turn everyday grocery runs and existing ingredients into practical meal ideas&mdash;reducing food waste and making cooking simpler without clutter. Built around a calm, supportive kitchen workflow rather than rigid checklists, it helps you track what is in your pantry, find recipes around what you already have, and follow clear steps while you cook.
